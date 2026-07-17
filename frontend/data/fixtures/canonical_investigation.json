@@ -1,0 +1,306 @@
+{
+  "cases": [
+    {
+      "id": "case-oms-2026",
+      "title": "Operation Midnight Shadow",
+      "description": "FIR No. 2026/HSR/0142, P.S. HSR Layout - Multi-state vehicle theft and money laundering ring investigation in Karnataka.",
+      "status": "OPEN"
+    }
+  ],
+  "entities": [
+    {
+      "id": "case-oms-2026",
+      "type": "Case",
+      "name": "Operation Midnight Shadow"
+    },
+    {
+      "id": "ent-person-arjun",
+      "type": "Person",
+      "name": "Arjun Sharma"
+    },
+    {
+      "id": "ent-person-priya",
+      "type": "Person",
+      "name": "Priya Nair"
+    },
+    {
+      "id": "ent-person-mohammed",
+      "type": "Person",
+      "name": "Mohammed Irfan"
+    },
+    {
+      "id": "ent-person-vikram",
+      "type": "Person",
+      "name": "Vikram Desai"
+    },
+    {
+      "id": "ent-person-sunita",
+      "type": "Person",
+      "name": "Sunita Rao"
+    },
+    {
+      "id": "ent-vehicle-ka01",
+      "type": "Vehicle",
+      "name": "KA01MF2345 - Black Honda City"
+    },
+    {
+      "id": "ent-vehicle-ka02",
+      "type": "Vehicle",
+      "name": "KA02AB9812 - White Innova Crysta"
+    },
+    {
+      "id": "ent-vehicle-ka03",
+      "type": "Vehicle",
+      "name": "KA03CD5671 - Grey Swift Dzire"
+    },
+    {
+      "id": "ent-phone-arjun",
+      "type": "Phone",
+      "name": "+91 98456 23017"
+    },
+    {
+      "id": "ent-phone-priya",
+      "type": "Phone",
+      "name": "+91 99001 44871"
+    },
+    {
+      "id": "ent-phone-mohammed",
+      "type": "Phone",
+      "name": "+91 97100 88234"
+    },
+    {
+      "id": "ent-addr-hsr",
+      "type": "Address",
+      "name": "HSR Layout Sector 2, Bengaluru"
+    },
+    {
+      "id": "ent-addr-koramangala",
+      "type": "Address",
+      "name": "Koramangala 5th Block, Bengaluru"
+    },
+    {
+      "id": "ent-addr-marathahalli",
+      "type": "Address",
+      "name": "Marathahalli Bridge, Bengaluru"
+    },
+    {
+      "id": "ent-addr-whitefield",
+      "type": "Address",
+      "name": "Whitefield Main Road, Bengaluru"
+    }
+  ],
+  "events": [
+    {
+      "id": "evt-001",
+      "caseId": "case-oms-2026",
+      "type": "Sighting",
+      "description": "Vehicle sightings near HSR warehouse",
+      "timestamp": "2026-06-15T10:30:00Z"
+    },
+    {
+      "id": "evt-002",
+      "caseId": "case-oms-2026",
+      "type": "Communication",
+      "description": "Intercepted phone calls between Sharma and Irfan",
+      "timestamp": "2026-06-18T14:15:00Z"
+    },
+    {
+      "id": "evt-003",
+      "caseId": "case-oms-2026",
+      "type": "Observation",
+      "description": "Koramangala handoff observed (Sharma -> Desai)",
+      "timestamp": "2026-06-22T21:00:00Z"
+    },
+    {
+      "id": "evt-004",
+      "caseId": "case-oms-2026",
+      "type": "Arrest",
+      "description": "Arrest attempt at Marathahalli checkpoint",
+      "timestamp": "2026-06-25T23:45:00Z"
+    },
+    {
+      "id": "evt-005",
+      "caseId": "case-oms-2026",
+      "type": "Legal",
+      "description": "FIR filed at HSR Layout PS",
+      "timestamp": "2026-06-26T08:00:00Z"
+    },
+    {
+      "id": "evt-006",
+      "caseId": "case-oms-2026",
+      "type": "Seizure",
+      "description": "Digital evidence seizure",
+      "timestamp": "2026-06-28T16:20:00Z"
+    },
+    {
+      "id": "evt-007",
+      "caseId": "case-oms-2026",
+      "type": "Legal",
+      "description": "Bail hearing event",
+      "timestamp": "2026-07-05T11:00:00Z"
+    },
+    {
+      "id": "evt-008",
+      "caseId": "case-oms-2026",
+      "type": "Investigation",
+      "description": "Case transferred to SIT",
+      "timestamp": "2026-07-10T09:00:00Z"
+    }
+  ],
+  "relationships": [
+    {
+      "id": "rel-001",
+      "sourceId": "ent-person-arjun",
+      "targetId": "ent-vehicle-ka01",
+      "type": "OWNS"
+    },
+    {
+      "id": "rel-002",
+      "sourceId": "ent-person-arjun",
+      "targetId": "ent-phone-arjun",
+      "type": "OWNS"
+    },
+    {
+      "id": "rel-003",
+      "sourceId": "ent-person-priya",
+      "targetId": "ent-phone-priya",
+      "type": "OWNS"
+    },
+    {
+      "id": "rel-004",
+      "sourceId": "ent-person-mohammed",
+      "targetId": "ent-vehicle-ka02",
+      "type": "OWNS"
+    },
+    {
+      "id": "rel-005",
+      "sourceId": "ent-person-mohammed",
+      "targetId": "ent-phone-mohammed",
+      "type": "OWNS"
+    },
+    {
+      "id": "rel-006",
+      "sourceId": "ent-person-vikram",
+      "targetId": "ent-vehicle-ka03",
+      "type": "OWNS"
+    },
+    {
+      "id": "rel-007",
+      "sourceId": "ent-person-arjun",
+      "targetId": "ent-person-mohammed",
+      "type": "ASSOCIATED_WITH"
+    },
+    {
+      "id": "rel-008",
+      "sourceId": "ent-person-arjun",
+      "targetId": "ent-person-vikram",
+      "type": "ASSOCIATED_WITH"
+    },
+    {
+      "id": "rel-009",
+      "sourceId": "ent-person-arjun",
+      "targetId": "ent-addr-hsr",
+      "type": "SPOTTED_AT"
+    },
+    {
+      "id": "rel-010",
+      "sourceId": "ent-phone-arjun",
+      "targetId": "ent-phone-mohammed",
+      "type": "CALLED"
+    },
+    {
+      "id": "rel-011",
+      "sourceId": "ent-person-arjun",
+      "targetId": "case-oms-2026",
+      "type": "INVOLVED_IN"
+    },
+    {
+      "id": "rel-012",
+      "sourceId": "ent-person-mohammed",
+      "targetId": "case-oms-2026",
+      "type": "INVOLVED_IN"
+    }
+  ],
+  "geos": [
+    {
+      "id": "geo-001",
+      "entityId": "ent-addr-hsr",
+      "latitude": 12.9121,
+      "longitude": 77.6446,
+      "locationName": "HSR Layout Sector 2, Bengaluru"
+    },
+    {
+      "id": "geo-002",
+      "entityId": "ent-addr-koramangala",
+      "latitude": 12.9352,
+      "longitude": 77.6245,
+      "locationName": "Koramangala 5th Block, Bengaluru"
+    },
+    {
+      "id": "geo-003",
+      "entityId": "ent-addr-marathahalli",
+      "latitude": 12.9591,
+      "longitude": 77.6974,
+      "locationName": "Marathahalli Bridge, Bengaluru"
+    },
+    {
+      "id": "geo-004",
+      "entityId": "ent-addr-whitefield",
+      "latitude": 12.9698,
+      "longitude": 77.7499,
+      "locationName": "Whitefield Main Road, Bengaluru"
+    },
+    {
+      "id": "geo-005",
+      "entityId": "ent-person-arjun",
+      "latitude": 12.9121,
+      "longitude": 77.6446,
+      "locationName": "HSR warehouse sighting"
+    },
+    {
+      "id": "geo-006",
+      "entityId": "ent-person-mohammed",
+      "latitude": 12.9591,
+      "longitude": 77.6974,
+      "locationName": "Marathahalli checkpoint"
+    }
+  ],
+  "metadata": [
+    {
+      "id": "meta-001",
+      "entityId": "ent-person-arjun",
+      "key": "riskLevel",
+      "value": "CRITICAL"
+    },
+    {
+      "id": "meta-002",
+      "entityId": "ent-person-arjun",
+      "key": "classification",
+      "value": "Primary Target"
+    },
+    {
+      "id": "meta-003",
+      "entityId": "ent-person-mohammed",
+      "key": "riskLevel",
+      "value": "HIGH"
+    },
+    {
+      "id": "meta-004",
+      "entityId": "ent-person-mohammed",
+      "key": "classification",
+      "value": "Logistics Coordinator"
+    },
+    {
+      "id": "meta-005",
+      "entityId": "ent-person-priya",
+      "key": "riskLevel",
+      "value": "MEDIUM"
+    },
+    {
+      "id": "meta-006",
+      "entityId": "ent-person-vikram",
+      "key": "riskLevel",
+      "value": "HIGH"
+    }
+  ]
+}

@@ -1,0 +1,53 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "HSR Layout Police Station",
+        "jurisdiction": "HSR Layout Sector 1-7",
+        "contact": "+91 80 2294 3464"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [77.6413, 12.9116]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Koramangala Police Station",
+        "jurisdiction": "Koramangala Blocks 1-8",
+        "contact": "+91 80 2294 3461"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [77.6231, 12.9348]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Marathahalli Police Station",
+        "jurisdiction": "Outer Ring Road / Marathahalli",
+        "contact": "+91 80 2294 3469"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [77.7011, 12.9562]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Whitefield Police Station",
+        "jurisdiction": "Whitefield IT Corridor",
+        "contact": "+91 80 2294 3472"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [77.7485, 12.9692]
+      }
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+export enum EntityType {
+    PERSON = 'PERSON',
+    VEHICLE = 'VEHICLE',
+    PHONE = 'PHONE',
+    ADDRESS = 'ADDRESS',
+    WEAPON = 'WEAPON',
+    BANK_ACCOUNT = 'BANK_ACCOUNT',
+    UPI = 'UPI',
+    IMEI = 'IMEI',
+    EVIDENCE = 'EVIDENCE',
+    OFFICER = 'OFFICER',
+    POLICE_STATION = 'POLICE_STATION'
+}
