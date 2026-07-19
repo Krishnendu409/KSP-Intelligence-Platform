@@ -1,8 +1,10 @@
 function getCaseDetails(db: any, caseMasterId: any) {
     const caseDetails = db.prepare(`
-        SELECT 
-            c.*, 
-            u.UnitName
+        SELECT
+            c.*,
+            u.UnitName,
+            u.UnitID as ResolvedUnitID,
+            u.DistrictID as ResolvedDistrictID
         FROM CaseMaster c
         LEFT JOIN Unit u ON c.PoliceStationID = u.UnitID
         WHERE c.CaseMasterID = ?

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useInvestigationStore } from "../workspace/store/useInvestigationStore";
+import { apiFetch } from "../shared/api/apiFetch";
 import {
   Shield,
   X,
@@ -9,7 +10,6 @@ import {
   ShieldCheck,
   ArrowRight,
   Clock,
-  Award,
 } from "lucide-react";
 
 
@@ -43,7 +43,7 @@ export const UniversalIntelligenceInspector: React.FC<UniversalIntelligenceInspe
       // But if it's Victim/Accused/Complainant, fetch the real entity profile.
       if (['Victim', 'Accused', 'Complainant'].includes(type)) {
         setLoading(true);
-        fetch(`/api/entities/${type}/${rawId}`)
+        apiFetch(`/api/entities/${type}/${rawId}`)
           .then(res => res.json())
           .then(data => {
             if (!data.error) setEntityProfile(data);
@@ -56,14 +56,7 @@ export const UniversalIntelligenceInspector: React.FC<UniversalIntelligenceInspe
   }, [inspector.isOpen, inspector.type, inspector.data]);
 
   const [analystNote, setAnalystNote] = useState("");
-  const [savedNotes, setSavedNotes] = useState<Array<{ id: string; timestamp: string; text: string; author: string }>>([
-    {
-      id: "note-1",
-      timestamp: "2026-07-11 18:40 IST",
-      text: "Subject observed at Koramangala Cafe meeting with unknown associate carrying duffel bag.",
-      author: "DET. R. VERMA",
-    },
-  ]);
+  const [savedNotes, setSavedNotes] = useState<Array<{ id: string; timestamp: string; text: string; author: string }>>([]);
 
   if (!inspector.isOpen || !inspector.type) {
     return null;
@@ -72,29 +65,6 @@ export const UniversalIntelligenceInspector: React.FC<UniversalIntelligenceInspe
   const data = entityProfile || inspector.data || {};
   const entityId = data.id || "UNKNOWN_ID";
   const label = data.name || data.label || data.title || entityId;
-
-  // NATO Grading calculation (default or explicit)
-  const natoGrade = data.natoGrade || (entityId.includes("arjun") ? "A1" : entityId.includes("vikram") ? "B2" : "A1");
-
-  const getNatoBadgeColor = (grade: string) => {
-    if (grade.startsWith("A")) return "bg-emerald-950/80 border-emerald-500 text-emerald-400";
-    if (grade.startsWith("B")) return "bg-cyan-950/80 border-cyan-500 text-cyan-400";
-    if (grade.startsWith("C")) return "bg-amber-950/80 border-amber-500 text-amber-400";
-    return "bg-rose-950/80 border-rose-500 text-rose-400";
-  };
-
-  const getNatoDescription = (grade: string) => {
-    switch (grade) {
-      case "A1":
-        return "Completely Reliable Source / Confirmed by Independent Evidence";
-      case "B2":
-        return "Usually Reliable Source / Probably True";
-      case "C3":
-        return "Fairly Reliable Source / Possibly True";
-      default:
-        return "Admissible Operational Intelligence Evaluation";
-    }
-  };
 
   // Use Real First-Degree Network data from DB
   const firstDegreeNetwork = data.network || [];
@@ -120,10 +90,7 @@ export const UniversalIntelligenceInspector: React.FC<UniversalIntelligenceInspe
       <div className="p-3 bg-tactical-950/80 rounded border border-tactical-800">
         <div className="flex items-center justify-between mb-2">
           <span className="text-xxs font-mono text-tactical-400 uppercase tracking-wider">
-            SYSTEM IDENTIFIER (UUID)
-          </span>
-          <span className="font-mono text-xxs text-accent-cyan bg-tactical-900 px-1.5 py-0.5 rounded border border-tactical-700">
-            VERIFIED STATE
+            SYSTEM IDENTIFIER
           </span>
         </div>
         <div className="flex items-center justify-between">
@@ -135,22 +102,6 @@ export const UniversalIntelligenceInspector: React.FC<UniversalIntelligenceInspe
             COPY ID
           </button>
         </div>
-      </div>
-
-      {/* NATO Source Evaluation Matrix */}
-      <div className="p-3 bg-tactical-950/80 rounded border border-tactical-800">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xxs font-mono text-tactical-400 uppercase tracking-wider flex items-center gap-1.5">
-            <Award className="w-3.5 h-3.5 text-accent-cyan" />
-            NATO EVALUATION GRADE
-          </span>
-          <span
-            className={`px-2 py-0.5 rounded border font-mono text-xs font-bold ${getNatoBadgeColor(natoGrade)}`}
-          >
-            GRADE {natoGrade}
-          </span>
-        </div>
-        <p className="text-xs font-mono text-tactical-300">{getNatoDescription(natoGrade)}</p>
       </div>
 
       {/* Core Attributes Table */}
@@ -201,30 +152,29 @@ export const UniversalIntelligenceInspector: React.FC<UniversalIntelligenceInspe
       </div>
 
       <div className="space-y-2">
-        {(data.evidence || [
-          {
-            title: "Exhibit E-001: Record Association Link",
-            hash: "SHA256: 8f9e421...c82a",
-            custodian: "Database Analytics Engine",
-            date: "Automated Pipeline",
-          }
-        ]).map((exhibit: any, idx: number) => (
-          <div key={idx} className="p-3 bg-tactical-900/40 border border-tactical-800 rounded flex flex-col gap-1.5">
-            <span className="font-mono text-xs font-bold text-white">
-              {exhibit.title}
-            </span>
-            <div className="flex items-center gap-4 text-xxs font-mono text-tactical-400">
-              <span className="flex items-center gap-1">
-                <FileKey className="w-3.5 h-3.5 text-tactical-500" />
-                {exhibit.hash}
+        {data.evidence && data.evidence.length > 0 ? (
+          data.evidence.map((exhibit: any, idx: number) => (
+            <div key={idx} className="p-3 bg-tactical-900/40 border border-tactical-800 rounded flex flex-col gap-1.5">
+              <span className="font-mono text-xs font-bold text-white">
+                {exhibit.title}
               </span>
-              <span className="flex items-center gap-1">
-                <ShieldCheck className="w-3.5 h-3.5 text-tactical-500" />
-                {exhibit.custodian}
-              </span>
+              <div className="flex items-center gap-4 text-xxs font-mono text-tactical-400">
+                <span className="flex items-center gap-1">
+                  <FileKey className="w-3.5 h-3.5 text-tactical-500" />
+                  {exhibit.hash}
+                </span>
+                <span className="flex items-center gap-1">
+                  <ShieldCheck className="w-3.5 h-3.5 text-tactical-500" />
+                  {exhibit.custodian}
+                </span>
+              </div>
             </div>
+          ))
+        ) : (
+          <div className="p-3 text-tactical-400 font-mono text-xs text-center">
+            No provenance records available for this entity.
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
@@ -239,6 +189,11 @@ export const UniversalIntelligenceInspector: React.FC<UniversalIntelligenceInspe
       </div>
 
       <div className="space-y-2">
+        {firstDegreeNetwork.length === 0 && (
+          <div className="p-3 text-tactical-400 font-mono text-xs text-center">
+            No first-degree relationships found for this entity.
+          </div>
+        )}
         {firstDegreeNetwork.map((netItem: any) => (
           <div
             key={netItem.id}
@@ -269,64 +224,29 @@ export const UniversalIntelligenceInspector: React.FC<UniversalIntelligenceInspe
 
   const renderTimelineTab = () => (
     <div className="space-y-4">
-      {/* Chronological Sparkline Preview */}
-      <div className="p-3 bg-tactical-950/80 rounded border border-tactical-800">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-xxs font-mono text-tactical-400 uppercase tracking-wider">
-            30-DAY TEMPORAL ACTIVITY SPARKLINE
-          </span>
-          <span className="font-mono text-xxs text-accent-cyan font-bold">14 BURSTS DETECTED</span>
-        </div>
-
-        {/* SVG Sparkline visualization */}
-        <div className="h-16 w-full flex items-end justify-between gap-1 pt-2">
-          {[2, 5, 3, 12, 18, 7, 4, 15, 24, 32, 19, 8, 4, 11, 28, 40, 22, 14, 9, 35, 18, 10, 6, 21].map(
-            (val, idx) => (
-              <div key={idx} className="flex-1 flex flex-col items-center gap-0.5">
-                <div
-                  className={`w-full rounded-t transition-all ${
-                    val > 25
-                      ? "bg-rose-500 shadow-sm shadow-rose-500/50"
-                      : val > 15
-                      ? "bg-accent-cyan"
-                      : "bg-tactical-600"
-                  }`}
-                  style={{ height: `${Math.min(100, (val / 40) * 100)}%` }}
-                />
-              </div>
-            )
-          )}
-        </div>
-        <div className="flex justify-between font-mono text-xxs text-tactical-500 mt-1">
-          <span>-30 DAYS</span>
-          <span>HEIST WINDOW</span>
-          <span>NOW</span>
-        </div>
-      </div>
-
-      {/* Recent High-Priority Events */}
+      {/* Recent Events */}
       <div className="space-y-2">
         <span className="font-mono text-xxs text-tactical-400 uppercase tracking-wider block">
-          LATEST CHRONOLOGICAL MILESTONES
+          RECORDED EVENTS
         </span>
-        {(data.activityTimeline || [
-          {
-            time: new Date().toLocaleString(),
-            title: "Entity Database Entry Sync",
-            type: "SYSTEM_SYNC",
-          }
-        ]).map((evt: any, idx: number) => (
-          <div key={idx} className="p-2.5 bg-tactical-900/70 rounded border border-tactical-800 flex items-start gap-2.5">
-            <Clock className="w-3.5 h-3.5 text-accent-cyan shrink-0 mt-0.5" />
-            <div className="space-y-0.5">
-              <div className="font-mono text-xs text-white font-semibold">{evt.title}</div>
-              <div className="flex items-center gap-2 font-mono text-xxs text-tactical-400">
-                <span>{evt.timestamp || evt.time}</span>
-                <span className="text-accent-cyan font-bold">• {evt.type}</span>
+        {data.activityTimeline && data.activityTimeline.length > 0 ? (
+          data.activityTimeline.map((evt: any, idx: number) => (
+            <div key={idx} className="p-2.5 bg-tactical-900/70 rounded border border-tactical-800 flex items-start gap-2.5">
+              <Clock className="w-3.5 h-3.5 text-accent-cyan shrink-0 mt-0.5" />
+              <div className="space-y-0.5">
+                <div className="font-mono text-xs text-white font-semibold">{evt.title}</div>
+                <div className="flex items-center gap-2 font-mono text-xxs text-tactical-400">
+                  <span>{evt.timestamp || evt.time}</span>
+                  <span className="text-accent-cyan font-bold">• {evt.type}</span>
+                </div>
               </div>
             </div>
+          ))
+        ) : (
+          <div className="p-3 text-tactical-400 font-mono text-xs text-center">
+            No timeline data available for this entity.
           </div>
-        ))}
+        )}
       </div>
     </div>
   );
@@ -343,6 +263,11 @@ export const UniversalIntelligenceInspector: React.FC<UniversalIntelligenceInspe
       </div>
 
       <div className="grid grid-cols-1 gap-2.5">
+        {(!data.pivots || data.pivots.length === 0) && (
+          <div className="p-3 text-tactical-400 font-mono text-xs text-center">
+            No suggested pivots available for this entity.
+          </div>
+        )}
         {(data.pivots || []).map((piv: any, idx: number) => {
           const IconComponent = piv.icon || User;
           return (
@@ -408,8 +333,11 @@ export const UniversalIntelligenceInspector: React.FC<UniversalIntelligenceInspe
       {/* Logged Notes Stream */}
       <div className="space-y-2 pt-2 border-t border-tactical-800">
         <span className="font-mono text-xxs text-tactical-400 uppercase tracking-wider block">
-          RECORDED WORKSPACE LOG ({savedNotes.length})
+          SESSION NOTES ({savedNotes.length}) — not saved to server, cleared on reload
         </span>
+        {savedNotes.length === 0 && (
+          <div className="p-3 text-tactical-500 font-mono text-xs text-center">No notes logged this session.</div>
+        )}
         {savedNotes.map((note) => (
           <div key={note.id} className="p-3 bg-tactical-900/80 rounded border border-tactical-800 space-y-1.5">
             <div className="flex items-center justify-between font-mono text-xxs">

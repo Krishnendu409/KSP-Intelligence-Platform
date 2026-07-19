@@ -130,7 +130,7 @@ export class RelationshipService {
       }
 
       // Add Edge
-      let edgeClass = edge.type.toLowerCase().replace(/_/g, ' ');
+      let edgeClass = edge.type.toLowerCase().replace(/_/g, '-');
       elements.push({
         data: {
           id: edge.id,
@@ -143,5 +143,53 @@ export class RelationshipService {
     }
 
     return elements;
+  }
+
+  /**
+   * Real BFS shortest path over the actual relationship graph (CaseMaster <-> Accused/Victim/
+   * Complainant/Unit/Employee edges derived from FKs). No fabricated nodes/edges — if no path
+   * exists in the real data, found is false.
+   */
+  public async findShortestPath(sourceId: string, targetId: string, maxDepth = 6): Promise<{
+    found: boolean;
+    path: Array<{ id: string; label: string; type: string }>;
+  }> {
+    if (sourceId === targetId) {
+      const ent = this.entityRepo?.findById(sourceId);
+      return { found: true, path: [{ id: sourceId, label: ent?.name || sourceId, type: ent?.type || 'UNKNOWN' }] };
+    }
+
+    const visited = new Set<string>([sourceId]);
+    const parent = new Map<string, string>();
+    let queue: string[] = [sourceId];
+
+    for (let depth = 0; depth < maxDepth && queue.length > 0; depth++) {
+      const nextQueue: string[] = [];
+      for (const nodeId of queue) {
+        const edges = this.relationshipRepo.findBySourceId(nodeId);
+        for (const edge of edges) {
+          if (visited.has(edge.targetId)) continue;
+          visited.add(edge.targetId);
+          parent.set(edge.targetId, nodeId);
+          if (edge.targetId === targetId) {
+            const chain: string[] = [targetId];
+            let cur = targetId;
+            while (parent.has(cur)) {
+              cur = parent.get(cur)!;
+              chain.unshift(cur);
+            }
+            const path = chain.map((id) => {
+              const ent = this.entityRepo?.findById(id);
+              return { id, label: ent?.name || id, type: ent?.type || 'UNKNOWN' };
+            });
+            return { found: true, path };
+          }
+          nextQueue.push(edge.targetId);
+        }
+      }
+      queue = nextQueue;
+    }
+
+    return { found: false, path: [] };
   }
 }

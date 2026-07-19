@@ -131,7 +131,10 @@ describe('Operation Midnight Shadow — End-to-End Investigation Workflow Valida
 
     // STEP 8: Verify Workflow Recorder panel trail
     const fullStack = state.navigation.stack;
-    expect(fullStack.length).toBeGreaterThanOrEqual(5);
+    // Due to the new Cycle Prevention logic, navigating to a case already in the stack 
+    // will truncate back to that existing frame rather than appending a duplicate.
+    // The stack goes from length 5 back to length 3.
+    expect(fullStack.length).toBe(3);
 
     // Verify all frames in the investigation trail have timestamp & valid type
     for (const frame of fullStack) {

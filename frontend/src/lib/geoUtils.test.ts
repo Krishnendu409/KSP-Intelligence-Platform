@@ -42,7 +42,7 @@ describe('generateGeoJsonFromStats', () => {
     });
     expect(firstFeature.properties?.threatLevel).toBe('CRITICAL');
     expect(firstFeature.properties?.id).toBe('CASE-101');
-    expect(firstFeature.properties?.GravityOffenceID).toBe(1);
+    expect(firstFeature.properties?.gravityId).toBe(1);
 
     const secondFeature = geoJson.features[1];
     expect(secondFeature.properties?.threatLevel).toBe('HIGH');

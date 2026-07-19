@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Map, Network, FileText, Bot, Shield,
-  Search, Video, Printer
+  Search, Video, Printer, LogOut, User, AlertTriangle
 } from 'lucide-react';
 import { useInvestigationStore } from '../workspace/store/useInvestigationStore';
 import { CommandPalette } from '../components/common/CommandPalette';
 import { WorkflowRecorder } from '../workspace/WorkflowRecorder';
+import { useAuthStore } from '../auth/useAuthStore';
+import { ThemeToggle } from '../theme/ThemeToggle';
 
 export const AppSidebar: React.FC = () => {
   const location = useLocation();
@@ -17,9 +19,11 @@ export const AppSidebar: React.FC = () => {
     isCopilotOpen,
     setIsCopilotOpen
   } = useInvestigationStore();
+  const { user, logout } = useAuthStore();
 
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isWorkflowRecorderOpen, setIsWorkflowRecorderOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
 
   const handleNavClick = (id: string) => {
     if (id === 'map') {
@@ -40,8 +44,8 @@ export const AppSidebar: React.FC = () => {
       return;
     }
 
-    if (id === 'copilot') {
-      navigate('/copilot');
+    if (id === 'alerts') {
+      navigate('/alerts');
       return;
     }
   };
@@ -49,6 +53,7 @@ export const AppSidebar: React.FC = () => {
   const isMapActive = location.pathname === '/' && isRightPanelCollapsed;
   const isNetworkActive = location.pathname.startsWith('/network');
   const isFirActive = location.pathname.startsWith('/cases');
+  const isAlertsActive = location.pathname.startsWith('/alerts');
 
   return (
     <>
@@ -104,6 +109,15 @@ export const AppSidebar: React.FC = () => {
             <Bot className="w-4 h-4" />
             <span className="nav-label">AI</span>
           </button>
+
+          <button
+            onClick={() => handleNavClick('alerts')}
+            className={`nav-item ${isAlertsActive ? 'active' : ''}`}
+            title="Alert Center"
+          >
+            <AlertTriangle className="w-4 h-4" />
+            <span className="nav-label">ALERTS</span>
+          </button>
         </nav>
 
         {/* Bottom Sidebar Actions */}
@@ -132,6 +146,40 @@ export const AppSidebar: React.FC = () => {
             <Printer className="w-4 h-4" />
             <span className="nav-label">PRINT</span>
           </button>
+          <ThemeToggle />
+        </div>
+
+        {/* Signed-in officer identity — always visible per platform policy */}
+        <div className="relative border-t border-tactical-700/60 px-1.5 py-3 flex flex-col items-center">
+          <button
+            onClick={() => setIsUserMenuOpen((v) => !v)}
+            className="w-8 h-8 rounded-full bg-tactical-800 border border-accent-cyan/40 flex items-center justify-center hover:border-accent-cyan transition-colors"
+            title={user ? `${user.employee.firstName} (${user.role})` : 'Officer'}
+          >
+            <User className="w-4 h-4 text-accent-cyan" />
+          </button>
+          <span className="text-[8px] font-mono text-tactical-400 mt-1 tracking-wider">{user?.role || '—'}</span>
+
+          {isUserMenuOpen && (
+            <div className="absolute bottom-full left-1 mb-2 w-56 bg-tactical-900 border border-tactical-700 rounded shadow-2xl p-3 z-50 font-mono">
+              <div className="text-xs font-bold text-white">{user?.employee.firstName || 'Unknown Officer'}</div>
+              <div className="text-xxs text-tactical-400 mt-0.5">
+                {user?.employee.rank || 'Rank N/A'} · {user?.employee.designation || user?.role}
+              </div>
+              <div className="text-xxs text-tactical-400">
+                {user?.employee.unitName || 'Unit N/A'}
+                {user?.employee.districtName ? ` · ${user.employee.districtName}` : ''}
+              </div>
+              <div className="text-xxs text-accent-cyan mt-1">Role: {user?.role}</div>
+              <button
+                onClick={() => { setIsUserMenuOpen(false); logout(); navigate('/login'); }}
+                className="mt-3 w-full flex items-center justify-center gap-1.5 px-2 py-1.5 rounded bg-tactical-800 hover:bg-accent-red/20 border border-tactical-700 hover:border-accent-red/50 text-tactical-300 hover:text-accent-red text-xxs font-bold transition-colors"
+              >
+                <LogOut className="w-3 h-3" />
+                SIGN OUT
+              </button>
+            </div>
+          )}
         </div>
       </aside>
 

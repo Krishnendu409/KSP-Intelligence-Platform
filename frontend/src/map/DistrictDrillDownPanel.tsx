@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { apiFetch } from '../shared/api/apiFetch';
 import { X, Map, BarChart3, TrendingUp, AlertTriangle } from 'lucide-react';
 
 interface DistrictDrillDownPanelProps {
@@ -13,7 +14,7 @@ export function DistrictDrillDownPanel({ district, onClose }: DistrictDrillDownP
   useEffect(() => {
     if (!district) return;
     setLoading(true);
-    fetch(`/api/districts/${encodeURIComponent(district.name)}/stats`)
+    apiFetch(`/api/districts/${encodeURIComponent(district.name)}/stats`)
       .then(res => res.json())
       .then(data => {
         setStats(data);

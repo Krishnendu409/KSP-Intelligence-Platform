@@ -298,13 +298,33 @@ export const useInvestigationStore = create<InvestigationSession>()(
       return {}; // No duplicate top stack frame
     }
 
+    // Trim any forward history if we navigated from middle of stack
+    const trimmedStack = state.navigation.stack.slice(0, state.navigation.currentIndex + 1);
+    
+    // Cycle Prevention: If the frame already exists in the current stack, jump back to it instead of duplicating
+    const existingIndex = trimmedStack.findIndex(f => f.type === frame.type && f.id === frame.id);
+    
+    if (existingIndex !== -1) {
+      return {
+        focusedEntity: frame.type === 'ENTITY' ? frame.id : state.focusedEntity,
+        activeCase: frame.type === 'CASE' ? frame.id : state.activeCase,
+        selection: {
+          ...state.selection,
+          primary: frame.type === 'ENTITY' ? frame.id : state.selection.primary
+        },
+        navigation: {
+          ...state.navigation,
+          stack: trimmedStack.slice(0, existingIndex + 1),
+          currentIndex: existingIndex
+        }
+      };
+    }
+
     const newFrame: NavigationFrame = {
       ...frame,
       timestamp: new Date().toISOString()
     };
 
-    // Trim any forward history if we navigated from middle of stack
-    const trimmedStack = state.navigation.stack.slice(0, state.navigation.currentIndex + 1);
     const updatedStack = [...trimmedStack, newFrame];
 
     return {
@@ -521,7 +541,9 @@ export const useInvestigationStore = create<InvestigationSession>()(
         activeCase: data.activeCase || null,
         mapState: data.mapState || get().mapState,
         layers: data.layers || get().layers,
-        dateFilter: data.dateFilter || get().dateFilter
+        dateFilter: data.dateFilter || get().dateFilter,
+        activeSidePanel: 'entity',
+        isRightPanelCollapsed: false
       });
       return true;
     } catch {

@@ -1,6 +1,6 @@
 
 import { useInvestigationStore } from "../workspace/store/useInvestigationStore";
-import { Loader2, CalendarClock, ChevronDown, Filter, Calendar, ExternalLink } from "lucide-react";
+import { Loader2, CalendarClock, ChevronDown, Filter, Calendar, ExternalLink, Zap } from "lucide-react";
 import { Badge } from "../components/common/Badge";
 import { useTimelineData } from "./useTimelineData";
 
@@ -225,7 +225,8 @@ export function TimelinePanel() {
                             }}
                             className="w-full mt-1 px-3 py-1.5 rounded bg-accent-cyan/15 hover:bg-accent-cyan/30 border border-accent-cyan/50 text-accent-cyan font-mono text-xs font-semibold flex items-center justify-center gap-1.5 transition-all"
                           >
-                            <span>⚡ {event.actionLabel}</span>
+                            <Zap className="w-3.5 h-3.5" />
+                            <span>{event.actionLabel}</span>
                           </button>
                         ) : null}
 

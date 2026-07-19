@@ -2,8 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FileText, MapPin, Scale, Users, PlusCircle, Map } from 'lucide-react';
 import { OpenAPI } from '@shared/client';
+import { apiFetch } from '../shared/api/apiFetch';
+import { IntakeModal } from '../cases/IntakeModal';
 
 import { useInvestigationStore } from '../workspace/store/useInvestigationStore';
+
+// GenderID has no dedicated lookup table in the ER schema — fixed convention (1=Male, 2=Female, 3=Transgender)
+function genderLabel(genderId: number | null | undefined): string {
+  return { 1: 'Male', 2: 'Female', 3: 'Transgender' }[genderId as number] || 'Unspecified';
+}
 
 export const FIRDatabasePage: React.FC = () => {
   const navigate = useNavigate();
@@ -20,15 +27,13 @@ export const FIRDatabasePage: React.FC = () => {
   const [selectedCase, setSelectedCase] = useState<any>(null);
   
   const [showIntakeModal, setShowIntakeModal] = useState(false);
-  const [intakeText, setIntakeText] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [totalCasesCount, setTotalCasesCount] = useState<number | null>(null);
 
   useEffect(() => {
-    fetch(`${OpenAPI.BASE}/api/firs/summary`)
+    apiFetch(`${OpenAPI.BASE}/api/firs/summary`)
       .then(res => res.json())
       .then(data => {
         if (data && data.totalCases) {
@@ -39,7 +44,7 @@ export const FIRDatabasePage: React.FC = () => {
   }, []);
 
   const fetchFirs = (pageNum: number, append = false) => {
-    fetch(`${OpenAPI.BASE}/api/firs?page=${pageNum}&limit=50`)
+    apiFetch(`${OpenAPI.BASE}/api/firs?page=${pageNum}&limit=50`)
       .then(res => res.json())
       .then(data => {
         if (data.length < 50) setHasMore(false);
@@ -67,40 +72,17 @@ export const FIRDatabasePage: React.FC = () => {
 
   useEffect(() => {
     if (activeCase) {
-        fetch(`${OpenAPI.BASE}/api/cases/CASE-${activeCase}`)
+        apiFetch(`${OpenAPI.BASE}/api/cases/CASE-${activeCase}`)
           .then(res => res.json())
           .then(data => setSelectedCase(data))
           .catch(console.error);
     }
   }, [activeCase]);
 
-  const handleIntakeSubmit = async () => {
-    if (!intakeText.trim()) return;
-    setIsSubmitting(true);
-    try {
-        const res = await fetch(`${OpenAPI.BASE}/api/intake`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ text: intakeText })
-        });
-        const data = await res.json();
-        
-        // Refresh cases
-        const firsRes = await fetch(`${OpenAPI.BASE}/api/firs`);
-        const firsData = await firsRes.json();
-        setAllCases(firsData);
-        
-        if (data.caseId) {
-            setActiveCase(data.caseId);
-        }
-        
-        setShowIntakeModal(false);
-        setIntakeText('');
-    } catch (err) {
-        console.error("Intake failed:", err);
-    } finally {
-        setIsSubmitting(false);
-    }
+  const handleCaseCreated = (caseId: number) => {
+    fetchFirs(1, false);
+    setActiveCase(String(caseId));
+    setShowIntakeModal(false);
   };
 
   const filteredCases = allCases.filter(c =>
@@ -299,19 +281,18 @@ export const FIRDatabasePage: React.FC = () => {
           <div className="bg-tactical-900 border border-tactical-700 rounded p-4">
             <div className="flex items-center gap-2 pb-2 mb-3 border-b border-tactical-800 text-amber-400 font-mono text-xs font-bold">
               <Users className="w-4 h-4" />
-              <span>ACCUSED PERSONS IN CUSTODY / WANTED ({accused.length})</span>
+              <span>ACCUSED ({accused.length})</span>
             </div>
             <div className="space-y-2">
               {accused.map((acc: any) => (
                 <div key={acc.AccusedMasterID} className="flex items-center justify-between p-2.5 rounded bg-tactical-950 border border-tactical-800 font-mono text-xs">
                   <div>
                     <span className="font-bold text-accent-cyan mr-2">[{acc.PersonID}]</span>
-                    <span className="text-white font-bold">{acc.AccusedName} (Age {acc.Age || 'Unknown'})</span>
-                    <span className="text-tactical-400 block text-xxs mt-0.5">SYNDICATE ROLE: {acc.Role || 'Suspect'}</span>
+                    <span className="text-white font-bold">{acc.AccusedName}</span>
+                    <span className="text-tactical-400 block text-xxs mt-0.5">
+                      {acc.AgeYear ? `Age ${acc.AgeYear}` : 'Age unknown'} · {genderLabel(acc.GenderID)}
+                    </span>
                   </div>
-                  <span className="px-2 py-0.5 rounded text-xxs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">
-                    {acc.CustodyStatus || 'Unknown'}
-                  </span>
                 </div>
               ))}
             </div>
@@ -323,7 +304,7 @@ export const FIRDatabasePage: React.FC = () => {
           <div className="bg-tactical-900 border border-tactical-700 rounded p-4">
             <div className="flex items-center gap-2 pb-2 mb-3 border-b border-tactical-800 text-accent-cyan font-mono text-xs font-bold">
               <Users className="w-4 h-4" />
-              <span>VICTIMS & COMPLAINANTS ({victims.length})</span>
+              <span>VICTIMS ({victims.length})</span>
             </div>
             <div className="space-y-2">
               {victims.map((vic: any) => (
@@ -331,11 +312,10 @@ export const FIRDatabasePage: React.FC = () => {
                   <div>
                     <span className="font-bold text-accent-cyan mr-2">[VIC-{vic.VictimMasterID}]</span>
                     <span className="text-white font-bold">{vic.VictimName}</span>
-                    <span className="text-tactical-400 block text-xxs mt-0.5">INJURY / IMPACT: {vic.InjuryType || 'Not specified'}</span>
+                    <span className="text-tactical-400 block text-xxs mt-0.5">
+                      {vic.AgeYear ? `Age ${vic.AgeYear}` : 'Age unknown'} · {genderLabel(vic.GenderID)}
+                    </span>
                   </div>
-                  <span className="px-2 py-0.5 rounded text-xxs font-bold bg-tactical-800 text-tactical-200 border border-tactical-600">
-                    RECORDED IN FIR
-                  </span>
                 </div>
               ))}
             </div>
@@ -346,40 +326,8 @@ export const FIRDatabasePage: React.FC = () => {
         </div>
       </div>
 
-      {/* Intake Modal */}
       {showIntakeModal && (
-        <div className="absolute inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
-            <div className="bg-tactical-900 border border-tactical-700 rounded p-6 w-full max-w-2xl shadow-2xl">
-                <h2 className="text-white font-mono font-bold text-lg mb-2 flex items-center gap-2">
-                    <PlusCircle className="text-accent-cyan w-5 h-5" />
-                    AI COPILOT FIR INTAKE
-                </h2>
-                <p className="text-tactical-400 text-xs font-mono mb-4">
-                    Paste raw narrative text, witness statements, or field notes below. The AI Copilot will automatically extract the entities, identify heinous/non-heinous intent, and persist to the database.
-                </p>
-                <textarea
-                    value={intakeText}
-                    onChange={(e) => setIntakeText(e.target.value)}
-                    className="w-full h-48 bg-tactical-950 border border-tactical-700 text-white font-mono text-sm p-3 rounded mb-4 focus:border-accent-cyan focus:outline-none"
-                    placeholder="Enter narrative here... e.g. A robbery occurred at the main bank branch in Indiranagar. The suspect Rajesh was seen fleeing with a weapon. The victim Ramesh is injured."
-                />
-                <div className="flex justify-end gap-3">
-                    <button 
-                        onClick={() => setShowIntakeModal(false)}
-                        className="px-4 py-2 bg-tactical-800 hover:bg-tactical-700 text-white rounded font-mono text-xs"
-                    >
-                        CANCEL
-                    </button>
-                    <button 
-                        onClick={handleIntakeSubmit}
-                        disabled={isSubmitting || !intakeText.trim()}
-                        className="px-4 py-2 bg-accent-cyan hover:bg-cyan-400 text-tactical-950 font-bold rounded font-mono text-xs flex items-center gap-2 disabled:opacity-50"
-                    >
-                        {isSubmitting ? 'PROCESSING...' : 'PROCESS & INGEST'}
-                    </button>
-                </div>
-            </div>
-        </div>
+        <IntakeModal onClose={() => setShowIntakeModal(false)} onCreated={handleCaseCreated} />
       )}
     </div>
   );

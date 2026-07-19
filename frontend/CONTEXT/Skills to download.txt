@@ -1,0 +1,57 @@
+Core Engineering
+System Architect
+Tech Lead
+Backend Engineer
+Frontend Engineer
+Database Architect
+API Designer
+AI
+AI Engineer
+Prompt Engineer
+RAG Engineer
+NLP Engineer
+Knowledge Graph Engineer
+Semantic Search Engineer
+Data
+PostgreSQL Expert
+SQL Expert
+Analytics Engineer
+Data Visualization Engineer
+UI
+UI/UX Designer
+Dashboard Designer
+Tailwind CSS Expert
+shadcn/ui Expert
+Quality
+TDD
+Systematic Debugging
+Code Reviewer
+Refactoring Expert
+Bug Hunter
+Deployment
+DevOps Engineer
+Docker Expert
+Security Auditor
+Catalyst (Very Important)
+Zoho Catalyst Expert
+Catalyst Functions Expert
+Catalyst Data Store Expert
+Catalyst QuickML Expert
+Catalyst Authentication Expert
+Catalyst AppSail Expert
+Catalyst Stratus Expert
+Catalyst Signals Expert
+Catalyst Circuits Expert
+
+If you can only download 10, make them these:
+
+System Architect
+Tech Lead
+Backend Engineer
+Frontend Engineer
+Database Architect
+AI Engineer
+PostgreSQL Expert
+Zoho Catalyst Expert
+TDD
+Systematic Debugging use find skills to download all The skills after reading The problem statement only thos which are not already present

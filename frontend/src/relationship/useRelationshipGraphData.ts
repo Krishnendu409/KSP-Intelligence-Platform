@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useInvestigationStore } from "../workspace/store/useInvestigationStore";
+import { apiFetch } from "../shared/api/apiFetch";
 
 export interface SelectedNodeInfo {
   id: string;
@@ -24,7 +25,7 @@ export function useRelationshipGraphData() {
 
     setLoading(true);
 
-    fetch(`/api/entities/${currentId}/relationships`)
+    apiFetch(`/api/entities/${currentId}/relationships`)
       .then(res => {
         if (!res.ok) throw new Error("Network request failed");
         return res.json();

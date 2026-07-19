@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { apiFetch } from '../shared/api/apiFetch';
 import { ShieldAlert, AlertTriangle, Users, Camera, Radio } from 'lucide-react';
 
 export function SystemKPIStrip() {
@@ -7,7 +8,7 @@ export function SystemKPIStrip() {
 
   useEffect(() => {
     let isMounted = true;
-    fetch('/api/firs/summary')
+    apiFetch('/api/firs/summary')
       .then(res => res.json())
       .then(data => {
         if (isMounted) {

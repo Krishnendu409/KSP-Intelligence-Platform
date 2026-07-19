@@ -40,9 +40,8 @@ describe('UniversalIntelligenceInspector', () => {
       inspector: {
         isOpen: true,
         type: 'ENTITY',
-        id: 'ent-person-arjun',
-        title: 'Arjun Sharma',
-        natoGrade: 'A1',
+        id: 'ent-person-1',
+        title: 'Test Entity',
         activeTab: 'metadata',
         explainability: {
           score: 0.94,
@@ -51,8 +50,8 @@ describe('UniversalIntelligenceInspector', () => {
           reasoning: ['Observed co-location during Operation Nightfall'],
         },
         lineage: {
-          rootId: 'ent-person-arjun',
-          nodes: [{ id: 'ent-person-arjun', label: 'Arjun Sharma', type: 'Person', depth: 0 }],
+          rootId: 'ent-person-1',
+          nodes: [{ id: 'ent-person-1', label: 'Test Entity', type: 'Person', depth: 0 }],
           edges: [],
         },
       },
@@ -63,9 +62,6 @@ describe('UniversalIntelligenceInspector', () => {
     });
 
     render(<UniversalIntelligenceInspector docked={true} />);
-
-    // Check NATO grade badge
-    expect(screen.getByText('GRADE A1')).toBeDefined();
 
     // Check all 8 tabs exist
     expect(screen.getByText('Metadata')).toBeDefined();
@@ -83,9 +79,8 @@ describe('UniversalIntelligenceInspector', () => {
       inspector: {
         isOpen: true,
         type: 'ENTITY',
-        id: 'ent-person-arjun',
-        title: 'Arjun Sharma',
-        natoGrade: 'A1',
+        id: 'ent-person-1',
+        title: 'Test Entity',
         activeTab: 'metadata',
       },
       closeInspector: mockCloseInspector,
@@ -100,13 +95,14 @@ describe('UniversalIntelligenceInspector', () => {
     fireEvent.click(screen.getByText('Custody'));
     expect(screen.getByText(/CHAIN-OF-CUSTODY & PROVENANCE/i)).toBeDefined();
 
-    // Click Explain tab
+    // Click Explain tab — the explainability/lineage engines aren't implemented yet,
+    // so these must honestly say so rather than fabricate a score or graph.
     fireEvent.click(screen.getByText('Explain'));
-    expect(screen.getByText(/DETERMINISTIC CONFIDENCE SCORE/i)).toBeDefined();
+    expect(screen.getByText(/Explainability data not available/i)).toBeDefined();
 
     // Click Lineage tab
     fireEvent.click(screen.getByText('Lineage'));
-    expect(screen.getByText(/DATA LINEAGE DIRECTED ACYCLIC GRAPH/i)).toBeDefined();
+    expect(screen.getByText(/Lineage graph not available/i)).toBeDefined();
 
     // Click Notes tab
     fireEvent.click(screen.getByText('Notes'));

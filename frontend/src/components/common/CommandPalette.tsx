@@ -2,7 +2,27 @@ import { useState, useEffect, useRef } from "react";
 import { Search, X, Loader2, User, Car, Phone, Briefcase, History, HelpCircle } from "lucide-react";
 import type { SearchResponse } from "@shared/client";
 import { useInvestigationStore } from "../../workspace/store/useInvestigationStore";
-import { performOperationalSearch } from "../../lib/operationalSearch";
+import { apiFetch } from "../../shared/api/apiFetch";
+
+async function searchCases(rawQuery: string): Promise<{ results: any[] }> {
+  const cleaned = rawQuery.replace(/^(case|fir|person|phone|vehicle|evidence|district|threat):\s*/i, "").trim();
+  if (!cleaned) return { results: [] };
+
+  const res = await apiFetch(`/api/search/cases?q=${encodeURIComponent(cleaned)}&limit=20`);
+  if (!res.ok) return { results: [] };
+  const cases: any[] = await res.json();
+
+  return {
+    results: cases.map((c) => ({
+      id: `CASE-${c.CaseMasterID}`,
+      name: c.CrimeNo,
+      type: "Case",
+      subtitle: (c.BriefFacts || "").slice(0, 100),
+      caseId: `CASE-${c.CaseMasterID}`,
+      score: c.score,
+    })),
+  };
+}
 
 export interface CommandPaletteProps {
   isOpen: boolean;
@@ -45,19 +65,19 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
     }
 
     if (debounceRef.current) clearTimeout(debounceRef.current);
+    setLoading(true);
 
     debounceRef.current = setTimeout(async () => {
       try {
-        const localMatches = performOperationalSearch(query);
-        setResults({ results: localMatches });
+        const matches = await searchCases(query);
+        setResults(matches as any);
         addRecentSearchQuery(query.trim());
       } catch (e) {
-        const localMatches = performOperationalSearch(query);
-        setResults({ results: localMatches });
+        setResults({ results: [] });
       } finally {
         setLoading(false);
       }
-    }, 150);
+    }, 250);
 
     return () => {
       if (debounceRef.current) clearTimeout(debounceRef.current);
@@ -67,7 +87,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   const handleSelectResult = (item: any) => {
     const store = useInvestigationStore.getState();
     if (item.type === "Case") {
-      store.setActiveCase(item.id);
+      store.setActiveCase(item.id.replace("CASE-", ""));
     } else {
       if (item.caseId) {
         store.setActiveCase(item.caseId);
@@ -78,7 +98,12 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   };
 
   const appendOperator = (op: string) => {
-    setQuery((prev) => (prev ? `${prev.trim()} ${op}` : op));
+    setQuery((prev) => {
+      // Remove any existing operator from the beginning of the string
+      const cleaned = prev.replace(/^(phone|vehicle|case|district|before|after|fir|person|evidence|threat):\s*/i, "").trim();
+      
+      return cleaned ? `${op} ${cleaned}` : op;
+    });
   };
 
   const getIconForType = (type: string) => {

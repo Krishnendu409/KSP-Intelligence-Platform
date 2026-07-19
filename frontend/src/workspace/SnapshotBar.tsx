@@ -2,14 +2,15 @@ import { useState, useEffect } from "react";
 import { useInvestigationStore } from "./store/useInvestigationStore";
 import type { SnapshotMeta } from "./store/useInvestigationStore";
 import { Save, FolderDown, Trash2, Check, Clock, ShieldCheck, X } from "lucide-react";
+import { useToastStore } from "./store/useToastStore";
 
 export function SnapshotBar() {
   const { saveSnapshot, restoreSnapshot, listSnapshots, deleteSnapshot } = useInvestigationStore();
+  const { addToast } = useToastStore();
   const [snapshots, setSnapshots] = useState<SnapshotMeta[]>([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [snapshotName, setSnapshotName] = useState("");
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const [feedbackMsg, setFeedbackMsg] = useState<string | null>(null);
 
   const refreshSnapshots = () => {
     setSnapshots(listSnapshots());
@@ -44,8 +45,7 @@ export function SnapshotBar() {
   };
 
   const showFeedback = (msg: string) => {
-    setFeedbackMsg(msg);
-    setTimeout(() => setFeedbackMsg(null), 3500);
+    addToast({ type: 'success', message: msg, duration: 4000 });
   };
 
   return (
@@ -58,12 +58,6 @@ export function SnapshotBar() {
             SESSION STORAGE: PERSISTED
           </span>
 
-          {feedbackMsg && (
-            <span className="text-accent-cyan font-bold flex items-center gap-1 animate-fade-in">
-              <Check className="w-3 h-3" />
-              {feedbackMsg}
-            </span>
-          )}
         </div>
 
         {/* Right Controls */}

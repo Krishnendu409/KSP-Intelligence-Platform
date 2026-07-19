@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
+import { apiFetch } from "../shared/api/apiFetch";
 import { useInvestigationStore } from "../workspace/store/useInvestigationStore";
 import { Shield, FolderOpen, Users, Clock, FileText, Briefcase } from "lucide-react";
 
 type CaseTab = "overview" | "entities" | "timeline" | "evidence" | "notes";
 
-export function CaseWorkspace({ caseId }: { caseId: string }) {
+export function CaseWorkspace({ caseId }: { caseId?: string }) {
   const { setFocusedEntity, activeCase, setActiveCase, inspectEntity } = useInvestigationStore();
   const [activeTab, setActiveTab] = useState<CaseTab>("overview");
   const [entityFilter] = useState("ALL");
@@ -20,7 +21,7 @@ export function CaseWorkspace({ caseId }: { caseId: string }) {
     let isMounted = true;
     
     // Fetch Recent Cases for the Switcher
-    fetch('/api/firs')
+    apiFetch('/api/firs')
       .then(res => res.json())
       .then(data => {
         if(isMounted) {
@@ -44,7 +45,7 @@ export function CaseWorkspace({ caseId }: { caseId: string }) {
     }
 
     // Fetch Full Case Details
-    fetch(`/api/cases/${effectiveCaseId}`)
+    apiFetch(`/api/cases/${effectiveCaseId}`)
       .then(res => res.json())
       .then(data => {
          if (!isMounted) return;
@@ -53,7 +54,7 @@ export function CaseWorkspace({ caseId }: { caseId: string }) {
       .catch(console.error);
 
     // Fetch Case Timeline
-    fetch(`/api/cases/${effectiveCaseId}/timeline`)
+    apiFetch(`/api/cases/${effectiveCaseId}/timeline`)
       .then(res => res.json())
       .then(data => {
          if (isMounted) setEvents(Array.isArray(data) ? data : []);
@@ -157,7 +158,7 @@ export function CaseWorkspace({ caseId }: { caseId: string }) {
           </div>
           <div className="bg-tactical-900/60 p-2 rounded border border-tactical-700">
             <span className="text-xxs text-tactical-500 uppercase block">Date Opened</span>
-            <span className="text-tactical-200">{caseRecord.CrimeRegisteredDate}</span>
+            <span className="text-tactical-200 truncate block">{caseRecord.CrimeRegisteredDate}</span>
           </div>
           <div className="bg-tactical-900/60 p-2 rounded border border-tactical-700">
             <span className="text-xxs text-tactical-500 uppercase block">Risk Threat Level</span>

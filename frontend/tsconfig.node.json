@@ -19,8 +19,7 @@
     "noFallthroughCasesInSwitch": true,
 
     "paths": {
-      "@shared/*": ["./packages/shared/*"],
-      "@server/*": ["./apps/intelligence-os/server/*"]
+      "@shared/*": ["./packages/shared/*"]
     }
   },
   "include": ["vite.config.ts"]

@@ -8,8 +8,7 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     alias: {
-      '@shared': path.resolve(__dirname, './packages/shared'),
-      '@server': path.resolve(__dirname, './apps/intelligence-os/server')
+      '@shared': path.resolve(__dirname, './packages/shared')
     }
   },
   server: {

@@ -3,16 +3,9 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { renderHook, waitFor } from '@testing-library/react';
 import { useRelationshipGraphData } from './useRelationshipGraphData';
 import { useInvestigationStore } from '../workspace/store/useInvestigationStore';
-import { DefaultService } from '@shared/client';
 
 vi.mock('../workspace/store/useInvestigationStore', () => ({
   useInvestigationStore: vi.fn()
-}));
-
-vi.mock('@shared/client', () => ({
-  DefaultService: {
-    getApiEntitiesRelationships: vi.fn()
-  }
 }));
 
 describe('useRelationshipGraphData', () => {
@@ -20,37 +13,41 @@ describe('useRelationshipGraphData', () => {
     vi.clearAllMocks();
     (useInvestigationStore as any).mockReturnValue({
       focusedEntity: 'target-1',
-      setFocusedEntity: vi.fn()
+      activeCase: null,
     });
   });
 
-  it('fetches relationship data and maps to elements successfully', async () => {
-    const mockRels = [
-      {
-        relationshipId: 'rel-1',
-        type: 'Knows',
-        sourceEntity: { id: 'target-1', name: 'Target', type: 'Person' },
-        targetEntity: { id: 'other-1', name: 'Other', type: 'Person' }
-      }
+  it('fetches the real cytoscape graph payload and exposes it as elements', async () => {
+    const mockElements = [
+      { data: { id: 'target-1', label: 'Target', type: 'Person' } },
+      { data: { id: 'other-1', label: 'Other', type: 'Person' } },
+      { data: { id: 'rel-1', source: 'target-1', target: 'other-1', label: 'ASSOCIATE_OF' } },
     ];
-    (DefaultService.getApiEntitiesRelationships as any).mockResolvedValue(mockRels);
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve(mockElements),
+    }));
 
     const { result } = renderHook(() => useRelationshipGraphData());
 
     await waitFor(() => {
       expect(result.current.loading).toBe(false);
-      expect(result.current.elements.length).toBeGreaterThan(0);
+      expect(result.current.elements.length).toBe(3);
     });
 
-    const elements = result.current.elements;
-    expect(elements).toContainEqual(
-      expect.objectContaining({ data: expect.objectContaining({ id: 'target-1' }) })
-    );
-    expect(elements).toContainEqual(
-      expect.objectContaining({ data: expect.objectContaining({ id: 'other-1' }) })
-    );
-    expect(elements).toContainEqual(
-      expect.objectContaining({ data: expect.objectContaining({ id: 'rel-1' }) })
-    );
+    expect(result.current.elements).toEqual(mockElements);
+    vi.unstubAllGlobals();
+  });
+
+  it('leaves elements empty when the request fails', async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false }));
+
+    const { result } = renderHook(() => useRelationshipGraphData());
+
+    await waitFor(() => {
+      expect(result.current.loading).toBe(false);
+    });
+    expect(result.current.elements).toEqual([]);
+    vi.unstubAllGlobals();
   });
 });

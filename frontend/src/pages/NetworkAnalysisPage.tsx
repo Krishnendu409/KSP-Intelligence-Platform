@@ -28,10 +28,10 @@ export const NetworkAnalysisPage: React.FC = () => {
           </div>
           <div>
             <h1 className="font-mono text-sm font-bold tracking-wider text-white">
-              EVIDENTIARY LINK ANALYSIS & KINGPIN DETECTION WORKSPACE
+              NETWORK & RELATIONSHIP ANALYSIS
             </h1>
             <p className="text-xxs font-mono text-tactical-400">
-              BFS Chain of Custody Tracer • Automated Hawala Node Detection • Operational Layout Engine
+              Real case/accused/victim/complainant relationships derived from case records • Deterministic shortest-path tracer
             </p>
           </div>
         </div>

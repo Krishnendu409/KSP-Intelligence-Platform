@@ -27,6 +27,7 @@ export function WorkspaceShell() {
   const [isWorkflowRecorderOpen, setIsWorkflowRecorderOpen] = useState(false);
   const [activeMode, setActiveMode] = useState<'ENTITY' | 'CASE'>('ENTITY');
   const [showBottomBar, setShowBottomBar] = useState(true);
+  const [panelWidth, setPanelWidth] = useState(380);
 
   const {
     activeSidePanel: sidePanel,
@@ -40,10 +41,25 @@ export function WorkspaceShell() {
     navigateBack,
     navigateForward,
     activeCase,
+    setActiveCase,
   } = useInvestigationStore();
 
   const canGoBack = navigation.currentIndex > 0;
   const canGoForward = navigation.currentIndex < navigation.stack.length - 1;
+
+  // Real recently-visited entities/cases, derived from the actual navigation stack (no fabricated data)
+  const recentFrames = (() => {
+    const seen = new Set<string>();
+    const out: { id: string; label?: string; type: string }[] = [];
+    for (let i = navigation.stack.length - 1; i >= 0 && out.length < 4; i--) {
+      const frame = navigation.stack[i];
+      if (frame.type !== 'ENTITY' && frame.type !== 'CASE') continue;
+      if (seen.has(frame.id)) continue;
+      seen.add(frame.id);
+      out.push(frame);
+    }
+    return out;
+  })();
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -59,6 +75,28 @@ export function WorkspaceShell() {
     return () => window.removeEventListener('keydown', handleKey);
   }, [navigateBack, navigateForward]);
 
+  const startResize = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startWidth = panelWidth;
+    
+    const doDrag = (dragEvent: MouseEvent) => {
+      // Since panel is on the right, dragging left (negative deltaX) increases width
+      const newWidth = startWidth - (dragEvent.clientX - startX);
+      if (newWidth >= 250 && newWidth <= 800) {
+        setPanelWidth(newWidth);
+      }
+    };
+    
+    const stopDrag = () => {
+      document.removeEventListener('mousemove', doDrag);
+      document.removeEventListener('mouseup', stopDrag);
+    };
+    
+    document.addEventListener('mousemove', doDrag);
+    document.addEventListener('mouseup', stopDrag);
+  };
+
   return (
     <div className="flex flex-col flex-1 h-full min-w-0 overflow-hidden">
       {/* ─── Command Palette ─── */}
@@ -67,20 +105,20 @@ export function WorkspaceShell() {
       {/* ─── Top Command Bar ─── */}
         <header className="h-10 shrink-0 flex items-center justify-between px-3 gap-3 bg-tactical-900/80 backdrop-blur border-b border-tactical-700/60 z-20">
           {/* Left: Breadcrumb */}
-          <div className="flex items-center gap-2 min-w-0 flex-1">
+          <div className="flex items-center gap-1 md:gap-2 min-w-0 flex-1">
             <button
               onClick={navigateBack}
               disabled={!canGoBack}
-              className={`p-1.5 rounded transition-all duration-150 shrink-0 ${canGoBack ? 'text-tactical-300 hover:text-accent-cyan hover:bg-tactical-800' : 'text-tactical-600 cursor-not-allowed'}`}
+              className={`p-1.5 md:p-2 rounded transition-all duration-150 shrink-0 ${canGoBack ? 'text-tactical-300 hover:text-accent-cyan hover:bg-tactical-800' : 'text-tactical-600 cursor-not-allowed'}`}
             >
-              <ChevronLeft className="w-3.5 h-3.5" />
+              <ChevronLeft className="w-4 h-4 md:w-3.5 md:h-3.5" />
             </button>
             <button
               onClick={navigateForward}
               disabled={!canGoForward}
-              className={`p-1.5 rounded transition-all duration-150 shrink-0 ${canGoForward ? 'text-tactical-300 hover:text-accent-cyan hover:bg-tactical-800' : 'text-tactical-600 cursor-not-allowed'}`}
+              className={`p-1.5 md:p-2 rounded transition-all duration-150 shrink-0 ${canGoForward ? 'text-tactical-300 hover:text-accent-cyan hover:bg-tactical-800' : 'text-tactical-600 cursor-not-allowed'}`}
             >
-              <ChevronRight className="w-3.5 h-3.5" />
+              <ChevronRight className="w-4 h-4 md:w-3.5 md:h-3.5" />
             </button>
 
             {/* Trail breadcrumb */}
@@ -97,7 +135,7 @@ export function WorkspaceShell() {
                       {idx > 0 && <ChevronRight className="w-2.5 h-2.5 text-tactical-600" />}
                       <button
                         onClick={() => setFocusedEntity(frame.id, frame.label)}
-                        className={`px-2 py-0.5 rounded transition-all whitespace-nowrap ${
+                        className={`px-2.5 py-1 md:px-2 md:py-0.5 rounded transition-all whitespace-nowrap ${
                           isCurrent
                             ? 'bg-accent-cyan/15 text-accent-cyan font-semibold border border-accent-cyan/30'
                             : 'text-tactical-400 hover:text-white hover:bg-tactical-800'
@@ -129,7 +167,7 @@ export function WorkspaceShell() {
 
             <button
               onClick={() => setActiveMode(prev => prev === 'ENTITY' ? 'CASE' : 'ENTITY')}
-              className={`flex items-center gap-1.5 px-2.5 py-1 rounded font-mono text-xxs border transition-all ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 md:px-2.5 md:py-1 rounded font-mono text-xs md:text-xxs border transition-all ${
                 activeMode === 'CASE'
                   ? 'bg-accent-amber/15 border-accent-amber/40 text-accent-amber'
                   : 'bg-tactical-800 border-tactical-600 hover:border-accent-cyan text-tactical-300 hover:text-white'
@@ -137,7 +175,7 @@ export function WorkspaceShell() {
               title="Toggle Entity / Case Mode"
             >
               <FolderOpen className="w-3 h-3" />
-              <span>{activeMode === 'CASE' ? `Case: ${activeCase || 'FIR-2026-0889'}` : 'Entity Mode'}</span>
+              <span>{activeMode === 'CASE' ? `Case: ${activeCase || 'None Selected'}` : 'Entity Mode'}</span>
             </button>
           </div>
         </header>
@@ -152,29 +190,29 @@ export function WorkspaceShell() {
           <div className="flex-1 min-w-0 relative overflow-hidden">
             <TacticalMap />
 
-            {/* ─── Floating Quick-Pivot HUD (bottom of map) ─── */}
-            {showBottomBar && (
+            {/* ─── Floating Quick-Pivot HUD (bottom of map) — real recently-visited entities/cases ─── */}
+            {showBottomBar && recentFrames.length > 0 && (
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 animate-fade-in">
                 <div className="hud-card px-3 py-2 flex items-center gap-2">
-                  <span className="text-xxs font-mono text-tactical-500 uppercase tracking-wider mr-1">Quick Focus:</span>
-                  {[
-                    { id: 'ent-person-arjun',      label: 'Arjun Sharma',        color: 'text-accent-red' },
-                    { id: 'ent-person-vikram',     label: 'Vikram Desai',        color: 'text-accent-amber' },
-                    { id: 'ent-vehicle-fortuner',  label: 'KA-01-AB-1234',       color: 'text-accent-cyan' },
-                    { id: 'ent-phone-arjun-1',     label: '+91 98765 43210',     color: 'text-accent-green' },
-                  ].map(s => (
+                  <span className="text-xxs font-mono text-tactical-500 uppercase tracking-wider mr-1">Recently Viewed:</span>
+                  {recentFrames.map(frame => (
                     <button
-                      key={s.id}
+                      key={frame.id}
                       onClick={() => {
-                        inspectEntity(s.id, { name: s.label });
-                        setSidePanel('entity');
+                        if (frame.type === 'CASE') {
+                          setActiveCase(frame.id.replace('CASE-', ''));
+                          setActiveMode('CASE');
+                        } else {
+                          inspectEntity(frame.id, { name: frame.label });
+                          setSidePanel('entity');
+                        }
                         setRightCollapsed(false);
                       }}
-                      className={`text-xxs font-mono px-2.5 py-1 rounded border border-tactical-700/60 hover:border-accent-cyan/40 hover:bg-tactical-700/60 transition-all ${
-                        focusedEntity === s.id ? 'bg-tactical-700 border-accent-cyan/40 ' + s.color : 'text-tactical-300 hover:text-white bg-tactical-800/60'
+                      className={`text-xs md:text-xxs font-mono px-3 py-1.5 md:px-2.5 md:py-1 rounded border border-tactical-700/60 hover:border-accent-cyan/40 hover:bg-tactical-700/60 transition-all ${
+                        focusedEntity === frame.id ? 'bg-tactical-700 border-accent-cyan/40 text-accent-cyan' : 'text-tactical-300 hover:text-white bg-tactical-800/60'
                       }`}
                     >
-                      {s.label}
+                      {frame.label || frame.id}
                     </button>
                   ))}
                   <button
@@ -191,11 +229,18 @@ export function WorkspaceShell() {
 
           {/* ─── Right Glass Panel (collapsible) ─── */}
           <div
-            className={`flex flex-col shrink-0 transition-all duration-300 ease-out overflow-hidden ${
-              rightCollapsed ? 'w-0 opacity-0 pointer-events-none' : 'w-[380px] opacity-100'
+            className={`absolute md:relative right-0 top-0 h-full flex flex-col shrink-0 transition-[width,opacity] duration-300 ease-out overflow-hidden z-40 md:z-auto ${
+              rightCollapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'
             }`}
+            style={{ width: rightCollapsed ? 0 : (typeof window !== 'undefined' && window.innerWidth < 768 ? '100%' : panelWidth) }}
           >
-            <div className="flex flex-col h-full glass-panel-strong border-l border-tactical-700/50 animate-slide-in-right">
+            {/* Drag Handle */}
+            <div 
+              className="absolute left-0 top-0 h-full w-1.5 cursor-col-resize hover:bg-accent-cyan/50 z-50 hidden md:block" 
+              onMouseDown={startResize} 
+            />
+            
+            <div className="flex flex-col h-full glass-panel-strong border-l border-tactical-700/50 animate-slide-in-right ml-1">
               {/* Panel Header */}
               <div className="flex items-center justify-between px-4 py-2.5 border-b border-tactical-700/50 shrink-0">
                 <div className="flex items-center gap-2">
@@ -211,7 +256,7 @@ export function WorkspaceShell() {
                         <button
                           key={t.id}
                           onClick={() => setSidePanel(t.id as SidePanel)}
-                          className={`flex items-center gap-1.5 px-2 py-1 rounded text-xxs font-mono transition-all ${
+                          className={`flex items-center gap-1.5 px-3 py-1.5 md:px-2 md:py-1 rounded text-xs md:text-xxs font-mono transition-all ${
                             sidePanel === t.id
                               ? 'bg-accent-cyan/15 text-accent-cyan border border-accent-cyan/30'
                               : 'text-tactical-500 hover:text-tactical-200 hover:bg-tactical-800/50'
@@ -230,7 +275,7 @@ export function WorkspaceShell() {
                   {sidePanel === 'entity' && (
                     <button
                       onClick={() => setActiveMode(prev => prev === 'ENTITY' ? 'CASE' : 'ENTITY')}
-                      className={`text-xxs font-mono px-1.5 py-0.5 rounded border transition-all ${
+                      className={`text-xs md:text-xxs font-mono px-2 py-1 md:px-1.5 md:py-0.5 rounded border transition-all ${
                         activeMode === 'CASE'
                           ? 'bg-accent-amber/10 border-accent-amber/30 text-accent-amber'
                           : 'border-tactical-700 text-tactical-500 hover:text-tactical-200'
@@ -254,7 +299,7 @@ export function WorkspaceShell() {
                 {sidePanel === 'entity' && (
                   <div className="h-full overflow-auto">
                     {activeMode === 'CASE' ? (
-                      <CaseWorkspace caseId={activeCase || 'FIR-2026-0889'} />
+                      <CaseWorkspace caseId={activeCase || undefined} />
                     ) : (
                       <EntityWorkspace />
                     )}
@@ -288,8 +333,8 @@ export function WorkspaceShell() {
         {/* ─── Bottom Status / Snapshot Bar ─── */}
         <SnapshotBar />
 
-      {/* ─── Docked Universal Intelligence Inspector (right edge) ─── */}
-      <UniversalIntelligenceInspector docked={true} />
+      {/* ─── Undocked Universal Intelligence Inspector (Slide-over Modal) ─── */}
+      <UniversalIntelligenceInspector docked={false} />
 
       {/* ─── Modals / Overlays ─── */}
       <WorkflowRecorder

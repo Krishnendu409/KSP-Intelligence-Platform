@@ -22,9 +22,8 @@
     "noFallthroughCasesInSwitch": true,
 
     "paths": {
-      "@shared/*": ["./packages/shared/*"],
-      "@server/*": ["./apps/intelligence-os/server/*"]
+      "@shared/*": ["./packages/shared/*"]
     }
   },
-  "include": ["src", "packages/shared", "apps/intelligence-os/server"]
+  "include": ["src", "packages/shared"]
 }

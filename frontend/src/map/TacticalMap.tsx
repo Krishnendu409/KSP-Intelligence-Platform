@@ -3,6 +3,7 @@ import Map, { NavigationControl, Marker, Source, Layer } from "react-map-gl/mapl
 import type { MapRef, MarkerEvent, ViewStateChangeEvent } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useInvestigationStore } from "../workspace/store/useInvestigationStore";
+import { apiFetch } from "../shared/api/apiFetch";
 import type { EntityLocation } from "@shared/client";
 import { MapPin, X, AlertTriangle, ShieldAlert, Radio, Camera, ExternalLink, Shield } from "lucide-react";
 import { type TacticalMapFeature, type PoliceStationFeature } from "../lib/operationalGeoDatabase";
@@ -12,6 +13,7 @@ import { MapFilterStrip } from "./MapFilterStrip";
 import type { MapFilters } from "./MapFilterStrip";
 import { MapLegend } from "./MapLegend";
 import { DistrictDrillDownPanel } from "./DistrictDrillDownPanel";
+import { useThemeStore } from "../theme/useThemeStore";
 
 export function TacticalMap() {
   const mapRef = useRef<MapRef>(null);
@@ -21,6 +23,8 @@ export function TacticalMap() {
     focusedEntity,
     setFocusedEntity
   } = useInvestigationStore();
+  
+  const { theme } = useThemeStore();
   
   const { viewport, activeLayers } = mapState;
   const [entityLocations, setEntityLocations] = useState<EntityLocation[]>([]);
@@ -51,7 +55,7 @@ export function TacticalMap() {
     let isMounted = true;
     
     // Fetch FIR Stats
-    fetch('/api/firs/stats')
+    apiFetch('/api/firs/stats')
       .then(res => res.json())
       .then(statsData => {
         if (!isMounted) return;
@@ -62,7 +66,7 @@ export function TacticalMap() {
       .catch(err => console.error("Failed to fetch map data:", err));
 
     // Fetch tactical locations
-    fetch('/api/entities/locations')
+    apiFetch('/api/entities/locations')
       .then(res => res.json())
       .then(locations => {
         if (isMounted) setEntityLocations(locations);
@@ -70,7 +74,7 @@ export function TacticalMap() {
       .catch(err => console.error("Failed to fetch tactical locations:", err));
 
     // Fetch police stations
-    fetch('/api/police-stations')
+    apiFetch('/api/police-stations')
       .then(res => res.json())
       .then(stations => {
         if (isMounted) setPoliceStations(stations);
@@ -79,8 +83,8 @@ export function TacticalMap() {
 
     // Fetch GeoJSON and Stats separately — merge dynamically via useMemo
     Promise.all([
-      fetch('/geojson/karnataka-districts.json').then(res => res.json()),
-      fetch('/api/districts/stats').then(res => res.json())
+      fetch(typeof window === 'undefined' ? 'http://localhost:5173/geojson/karnataka-districts.json' : '/geojson/karnataka-districts.json').then(res => res.json()),
+      apiFetch('/api/districts/stats').then(res => res.json())
     ])
     .then(([geoJson, statsData]) => {
       if (!isMounted) return;
@@ -90,7 +94,7 @@ export function TacticalMap() {
     .catch(console.error);
 
     // Fetch Geo Arcs
-    fetch('/api/network/geo-arcs')
+    apiFetch('/api/network/geo-arcs')
       .then(res => res.json())
       .then(arcs => { 
         if (isMounted) setLiveGeoArcs(arcs); 
@@ -223,7 +227,7 @@ export function TacticalMap() {
           targetLat = firMatch.geometry.coordinates[1];
           
           // Also fetch case details to show the overlay
-          fetch(`/api/cases/${focusedEntity.replace('CASE-', '')}`)
+          apiFetch(`/api/cases/${focusedEntity.replace('CASE-', '')}`)
             .then(res => res.json())
             .then(caseData => {
               setSelectedGeoFeature({
@@ -259,7 +263,9 @@ export function TacticalMap() {
   return (
     <div className="w-full h-full relative" style={{ isolation: 'isolate' }}>
       {/* Very subtle vignette — pointer-events-none ensures map stays interactive */}
-      <div className="absolute inset-0 pointer-events-none z-10" style={{ background: 'radial-gradient(ellipse at center, transparent 60%, rgba(5,8,16,0.5) 100%)' }} />
+      {theme === 'dark' && (
+        <div className="absolute inset-0 pointer-events-none z-10" style={{ background: 'radial-gradient(ellipse at center, transparent 60%, rgba(5,8,16,0.5) 100%)' }} />
+      )}
       
       <Map
         ref={mapRef}
@@ -272,7 +278,7 @@ export function TacticalMap() {
         pitchWithRotate={mapConfig.pitchWithRotate}
         minZoom={mapConfig.minZoom}
         maxZoom={mapConfig.maxZoom}
-        mapStyle="https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"
+        mapStyle={theme === 'dark' ? "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json" : "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
         interactiveLayerIds={[
           'firs-layer',
           'district-choropleth-fill'
@@ -283,7 +289,7 @@ export function TacticalMap() {
             const clickedFir = features.find(f => f.layer.id === 'firs-layer');
             if (clickedFir && clickedFir.properties) {
               const caseId = clickedFir.properties.id;
-              fetch(`/api/cases/${caseId.replace('CASE-', '')}`)
+              apiFetch(`/api/cases/${caseId.replace('CASE-', '')}`)
                 .then(res => res.json())
                 .then(caseData => {
                   setSelectedGeoFeature({
