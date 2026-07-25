@@ -187,10 +187,9 @@ For in-depth domain architecture specifications, historical design decisions, an
 
 * **[Infrastructure Adapters Design](frontend/docs/superpowers/specs/2026-07-10-infrastructure-adapters-design.md)**: Details our local-first architecture and Zoho Catalyst cloud migration roadmap.
 * **[No-LLM Deterministic AI Engine (ADR-0007)](frontend/docs/adr/0007-no-llms.md)**: Architectural defense explaining our zero-hallucination computational copilot policy.
-* **[FTS5 BM25 Relational Search Strategy](search_architecture_research.md)**: Mathematical mechanics of how we combine high-speed text search with criminal record joins.
-* **[End-to-End System Audit Report](system_test_and_audit_report.md)**: Detailed certification of our 5,007 database seed records and multi-jurisdictional RBAC filtering.
+* **[FTS5 BM25 Relational Search Strategy](docs/reports/search_architecture_research.md)**: Mathematical mechanics of how we combine high-speed text search with criminal record joins.
+* **[End-to-End System Audit Report](docs/reports/system_test_and_audit_report.md)**: Detailed certification of our 5,007 database seed records and multi-jurisdictional RBAC filtering.
 
 ---
 *Built with unwavering precision for the 2026 Karnataka State Police Datathon.*
 *Protecting citizens through data transparency, spatial intelligence, and zero-hallucination technology.*
-```
