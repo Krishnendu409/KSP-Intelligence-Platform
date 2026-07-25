@@ -87,10 +87,14 @@ export function CaseWorkspace({ caseId }: { caseId?: string }) {
      }))
   ];
 
+  const [activeDocument, setActiveDocument] = useState<{title: string, category: string} | null>(null);
+
   const caseEvidence = [
      ...(caseRecord.acts || []).map((a: any) => ({
-        id: `ACT-${a.ActID}-${a.SectionID}`, title: `Act ${a.ActID} / Sec ${a.SectionID}`, category: 'Document', source: 'KSP FIR Record'
-     }))
+        id: `ACT-${a.ActID}-${a.SectionID}`, title: `Act ${a.ActID} / Sec ${a.SectionID}`, category: 'Legal Act', source: 'KSP FIR Record', isDocument: false
+     })),
+     { id: `DOC-${effectiveCaseId}-1`, title: 'Initial Complainant Statement', category: 'PDF Document', source: 'Field Officer Upload', isDocument: true },
+     { id: `DOC-${effectiveCaseId}-2`, title: 'Crime Scene Photographs', category: 'Media/JPEG', source: 'Crime Scene Unit', isDocument: true }
   ];
 
   const filteredEntities =
@@ -129,40 +133,40 @@ export function CaseWorkspace({ caseId }: { caseId?: string }) {
       </div>
 
       {/* Case Header Chrome */}
-      <div className="p-4 border-b border-tactical-700 bg-tactical-800/60 flex flex-col gap-3 shrink-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <FolderOpen className="w-5 h-5 text-accent-amber" />
-            <span className="font-mono text-xs text-tactical-400">FIR / CASE DOSSIER:</span>
-            <span className="font-mono text-sm font-bold text-accent-amber">{effectiveCaseId}</span>
-            <span className="font-mono text-xxs px-2 py-0.5 rounded bg-tactical-950 border border-tactical-600 text-accent-cyan">
+      <div className="p-4 border-b border-tactical-700 bg-tactical-800/60 flex flex-col gap-4 shrink-0">
+        <div className="flex flex-wrap items-start md:items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center gap-2">
+            <FolderOpen className="w-5 h-5 text-accent-amber shrink-0" />
+            <span className="font-mono text-xs text-tactical-400 shrink-0">FIR / CASE DOSSIER:</span>
+            <span className="font-mono text-sm font-bold text-accent-amber shrink-0">{effectiveCaseId}</span>
+            <span className="font-mono text-xxs px-2 py-0.5 rounded bg-tactical-950 border border-tactical-600 text-accent-cyan shrink-0">
               CRIME NO: {caseRecord.CrimeNo}
             </span>
-            <span className="font-mono text-xxs px-2 py-0.5 rounded bg-tactical-950 border border-tactical-600 text-tactical-300">
+            <span className="font-mono text-xxs px-2 py-0.5 rounded bg-tactical-950 border border-tactical-600 text-tactical-300 shrink-0 hidden xl:inline-flex">
               STATION: {caseRecord.UnitName}
             </span>
           </div>
-          <span className="px-2 py-0.5 rounded bg-accent-amber/20 border border-accent-amber text-accent-amber font-mono text-xxs uppercase font-bold">
+          <span className="px-2 py-0.5 rounded bg-accent-amber/20 border border-accent-amber text-accent-amber font-mono text-xxs uppercase font-bold shrink-0">
             {caseRecord.CaseStatusID === 1 ? "ACTIVE INVESTIGATION" : "CLOSED/RESOLVED"}
           </span>
         </div>
 
-        <div className="grid grid-cols-4 gap-2 text-xs font-mono">
-          <div className="bg-tactical-900/60 p-2 rounded border border-tactical-700">
-            <span className="text-xxs text-tactical-500 uppercase block">Title</span>
-            <span className="text-tactical-200 font-bold truncate block">{caseRecord.CaseNo}</span>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-2.5 text-xs font-mono">
+          <div className="bg-tactical-900/60 p-2.5 rounded border border-tactical-700">
+            <span className="text-xxs text-tactical-500 uppercase block mb-1">Title</span>
+            <span className="text-tactical-200 font-bold truncate block" title={caseRecord.CaseNo}>{caseRecord.CaseNo}</span>
           </div>
-          <div className="bg-tactical-900/60 p-2 rounded border border-tactical-700">
-            <span className="text-xxs text-tactical-500 uppercase block">Assigned Unit</span>
-            <span className="text-tactical-200 truncate block">{caseRecord.UnitName}</span>
+          <div className="bg-tactical-900/60 p-2.5 rounded border border-tactical-700">
+            <span className="text-xxs text-tactical-500 uppercase block mb-1">Assigned Unit</span>
+            <span className="text-tactical-200 truncate block" title={caseRecord.UnitName}>{caseRecord.UnitName}</span>
           </div>
-          <div className="bg-tactical-900/60 p-2 rounded border border-tactical-700">
-            <span className="text-xxs text-tactical-500 uppercase block">Date Opened</span>
+          <div className="bg-tactical-900/60 p-2.5 rounded border border-tactical-700">
+            <span className="text-xxs text-tactical-500 uppercase block mb-1">Date Opened</span>
             <span className="text-tactical-200 truncate block">{caseRecord.CrimeRegisteredDate}</span>
           </div>
-          <div className="bg-tactical-900/60 p-2 rounded border border-tactical-700">
-            <span className="text-xxs text-tactical-500 uppercase block">Risk Threat Level</span>
-            <span className="font-bold text-accent-cyan">ELEVATED</span>
+          <div className="bg-tactical-900/60 p-2.5 rounded border border-tactical-700">
+            <span className="text-xxs text-tactical-500 uppercase block mb-1">Risk Threat Level</span>
+            <span className="font-bold text-accent-cyan block truncate">ELEVATED</span>
           </div>
         </div>
       </div>
@@ -257,15 +261,25 @@ export function CaseWorkspace({ caseId }: { caseId?: string }) {
         {activeTab === "evidence" && (
           <div className="flex flex-col gap-2.5">
             {caseEvidence.map((ev) => (
-              <div key={ev.id} className="p-3 rounded bg-tactical-800/40 border border-tactical-700 flex flex-col gap-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-tactical-100">{ev.title}</span>
-                  <span className="px-2 py-0.5 rounded font-mono text-xxs bg-tactical-900 text-accent-cyan border border-tactical-700">{ev.category}</span>
+              <div key={ev.id} className="p-3 rounded bg-tactical-800/40 border border-tactical-700 flex items-center justify-between group hover:border-tactical-500 transition-colors">
+                <div className="flex flex-col gap-1.5">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-tactical-100">{ev.title}</span>
+                    <span className="px-2 py-0.5 rounded font-mono text-xxs bg-tactical-900 text-accent-cyan border border-tactical-700">{ev.category}</span>
+                  </div>
+                  <div className="flex items-center gap-4 text-xxs font-mono text-tactical-400">
+                    <span>Source: {ev.source}</span>
+                    <span>Record #{ev.id}</span>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between text-xxs font-mono text-tactical-400">
-                  <span>Source: {ev.source}</span>
-                  <span>Record #{ev.id}</span>
-                </div>
+                {ev.isDocument && (
+                  <button 
+                    onClick={() => setActiveDocument({ title: ev.title, category: ev.category })}
+                    className="px-3 py-1.5 bg-tactical-800 hover:bg-accent-cyan/20 border border-tactical-600 hover:border-accent-cyan rounded text-tactical-300 hover:text-accent-cyan font-mono text-xs transition-colors"
+                  >
+                    View Document
+                  </button>
+                )}
               </div>
             ))}
           </div>
@@ -277,6 +291,39 @@ export function CaseWorkspace({ caseId }: { caseId?: string }) {
           </div>
         )}
       </div>
+
+      {/* Document Viewer Modal */}
+      {activeDocument && (
+        <div className="absolute inset-0 bg-black/80 backdrop-blur-sm z-[100] flex flex-col">
+          <div className="flex items-center justify-between p-3 border-b border-tactical-700 bg-tactical-950">
+            <div className="flex items-center gap-2 font-mono">
+              <FileText className="w-4 h-4 text-accent-cyan" />
+              <span className="text-white font-bold text-sm uppercase tracking-wider">{activeDocument.title}</span>
+              <span className="text-tactical-400 text-xs px-2 py-0.5 bg-tactical-900 border border-tactical-700 rounded">{activeDocument.category}</span>
+            </div>
+            <button onClick={() => setActiveDocument(null)} className="p-1 rounded text-tactical-400 hover:text-white hover:bg-tactical-800 transition-colors">
+              <span className="text-xl leading-none">&times;</span>
+            </button>
+          </div>
+          <div className="flex-1 p-6 flex flex-col items-center justify-center bg-[#111] overflow-auto">
+             <div className="w-full max-w-3xl aspect-[1/1.4] bg-white text-black p-8 shadow-2xl rounded-sm">
+                <div className="border-b-2 border-black pb-4 mb-6">
+                   <h1 className="text-2xl font-serif font-bold text-center">KARNATAKA STATE POLICE</h1>
+                   <h2 className="text-lg font-serif text-center mt-2 uppercase">{activeDocument.title}</h2>
+                </div>
+                <div className="font-serif text-sm space-y-4">
+                   <p><strong>Case Reference:</strong> {effectiveCaseId}</p>
+                   <p><strong>Date:</strong> {new Date().toLocaleDateString()}</p>
+                   <hr className="my-4" />
+                   <div className="bg-gray-100 p-4 border border-gray-300 text-center font-mono text-gray-500 italic">
+                      [SECURE DOCUMENT CONTENT CLASSIFIED]
+                   </div>
+                   <p className="mt-8 text-xs text-gray-400 text-center uppercase tracking-widest">End of Document</p>
+                </div>
+             </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

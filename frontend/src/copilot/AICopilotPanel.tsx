@@ -126,7 +126,7 @@ export const AICopilotPanel: React.FC<AICopilotPanelProps> = ({ isFullPage = fal
             <Cpu className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-mono text-sm font-bold tracking-wider text-white">KSP INTELLIGENCE COPILOT</h3>
+            <h3 className="font-mono text-sm font-bold tracking-wider text-tactical-100">KSP INTELLIGENCE COPILOT</h3>
             <div className="text-xxs font-mono text-accent-cyan">Deterministic · no LLM in the analytical path</div>
           </div>
         </div>
@@ -211,7 +211,7 @@ export const AICopilotPanel: React.FC<AICopilotPanelProps> = ({ isFullPage = fal
                 key={p}
                 onClick={() => sendChatMessage(p)}
                 disabled={isSending}
-                className="px-3 py-1.5 md:px-2 md:py-0.5 rounded bg-tactical-800 hover:bg-tactical-700 border border-tactical-600 hover:border-accent-cyan text-xs md:text-xxs font-mono text-tactical-300 hover:text-white transition-all disabled:opacity-40 whitespace-normal text-left"
+                className="px-3 py-1.5 md:px-2 md:py-0.5 rounded bg-tactical-800 hover:bg-tactical-700 border border-tactical-600 hover:border-accent-cyan text-xs md:text-xxs font-mono text-tactical-300 hover:text-tactical-100 transition-all disabled:opacity-40 whitespace-normal text-left"
               >
                 {p}
               </button>
@@ -226,7 +226,7 @@ export const AICopilotPanel: React.FC<AICopilotPanelProps> = ({ isFullPage = fal
               placeholder="Ask about trends, hotspots, repeat offenders, or search cases... (Enter to send)"
               rows={2}
               disabled={isSending}
-              className="flex-1 min-w-0 bg-tactical-900 border border-tactical-600 rounded px-3 py-2 md:px-3 md:py-1.5 text-sm md:text-xs font-mono text-white focus:border-accent-cyan focus:outline-none resize-none disabled:opacity-40"
+              className="flex-1 min-w-0 bg-tactical-900 border border-tactical-600 rounded px-3 py-2 md:px-3 md:py-1.5 text-sm md:text-xs font-mono text-tactical-100 focus:border-accent-cyan focus:outline-none resize-none disabled:opacity-40"
             />
             <button
               onClick={() => sendChatMessage()}
@@ -253,7 +253,7 @@ export const AICopilotPanel: React.FC<AICopilotPanelProps> = ({ isFullPage = fal
                 value={inputQuery}
                 onChange={(e) => setInputQuery(e.target.value)}
                 placeholder="e.g. theft, robbery, a station name..."
-                className="flex-1 bg-tactical-900 border border-tactical-600 rounded px-3 py-1.5 text-xs font-mono text-white focus:border-accent-cyan focus:outline-none"
+                className="flex-1 bg-tactical-900 border border-tactical-600 rounded px-3 py-1.5 text-xs font-mono text-tactical-100 focus:border-accent-cyan focus:outline-none"
               />
               <button type="submit" disabled={isSearching} className="px-3 py-1.5 rounded bg-accent-cyan hover:bg-accent-cyan/90 text-tactical-950 font-mono font-bold text-xs transition-colors shrink-0 disabled:opacity-50">
                 {isSearching ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : 'SEARCH'}
@@ -273,7 +273,7 @@ export const AICopilotPanel: React.FC<AICopilotPanelProps> = ({ isFullPage = fal
                   {searchResults.map((fir) => (
                     <div key={fir.CaseMasterID} className="p-2.5 rounded bg-tactical-900/90 border border-tactical-700">
                       <div className="flex items-center justify-between mb-1">
-                        <span className="font-mono font-bold text-xs text-white">CRIME NO: {fir.CrimeNo}</span>
+                        <span className="font-mono font-bold text-xs text-tactical-100">CRIME NO: {fir.CrimeNo}</span>
                       </div>
                       <div className="text-xxs font-mono text-tactical-300 mb-1 flex items-center gap-1">
                         <MapPin className="w-3 h-3 text-tactical-400" />

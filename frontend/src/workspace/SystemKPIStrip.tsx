@@ -39,7 +39,7 @@ export function SystemKPIStrip() {
         <ShieldAlert className="w-4 h-4 text-tactical-500" />
         <div className="flex flex-col">
           <span className="text-[9px] text-tactical-500 font-mono tracking-widest">TOTAL CASES</span>
-          <span className="text-xs font-mono font-bold text-white">{formatNumber(stats.totalCases)}</span>
+          <span className="text-xs font-mono font-bold text-tactical-100">{formatNumber(stats.totalCases)}</span>
         </div>
       </div>
       

@@ -108,4 +108,49 @@ describe('UniversalIntelligenceInspector', () => {
     fireEvent.click(screen.getByText('Notes'));
     expect(screen.getByText(/APPEND ANALYST OBSERVATION \/ TASK/i)).toBeDefined();
   });
+
+  it('fetches real entity profiles and persistent notes for Case and all entity types from the backend database', async () => {
+    (useInvestigationStore as any).mockReturnValue({
+      inspector: {
+        isOpen: true,
+        type: 'Case',
+        data: { id: 'CASE-101', name: 'TEST FIR 101' },
+        activeTab: 'notes',
+      },
+      closeInspector: mockCloseInspector,
+      inspectEntity: mockInspectEntity,
+      setFocusedEntity: mockSetFocusedEntity,
+      bookmarkItem: mockBookmarkItem,
+    });
+
+    const fakeNotes = [
+      { id: '1', timestamp: '2026-07-25', author: 'SHO', text: 'Persistent DB surveillance note', noteType: 'SURVEILLANCE' }
+    ];
+
+    const fetchSpy = vi.spyOn(window, 'fetch').mockImplementation((url: any) => {
+      if (url.includes('/api/entities/Case/101/notes')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve(fakeNotes),
+        } as Response);
+      }
+      if (url.includes('/api/entities/Case/101')) {
+        return Promise.resolve({
+          ok: true,
+          json: () => Promise.resolve({ id: 'CASE-101', name: 'TEST FIR 101', status: 'ACTIVE' }),
+        } as Response);
+      }
+      return Promise.reject(new Error('Unknown url'));
+    });
+
+    render(<UniversalIntelligenceInspector docked={true} />);
+
+    // Verify it fetches notes and displays persistent note headline instead of session-only warning
+    const noteText = await screen.findByText('Persistent DB surveillance note');
+    expect(noteText).toBeDefined();
+    expect(screen.getByText(/PERSISTENT EVIDENCE NOTES/i)).toBeDefined();
+
+    fetchSpy.mockRestore();
+  });
 });
+

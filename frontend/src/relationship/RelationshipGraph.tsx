@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import cytoscape from "cytoscape";
 import CytoscapeComponent from "react-cytoscapejs";
 import fcose from "cytoscape-fcose";
@@ -54,6 +54,19 @@ export function RelationshipGraph() {
       console.error("Failed to expand node:", err);
     }
   };
+
+  // Fix Cytoscape layout bug when elements load asynchronously
+  useEffect(() => {
+    if (cyRef.current && elements.length > 0 && !loading) {
+      cyRef.current.layout({
+        name: 'fcose',
+        animate: true,
+        randomize: true,
+        fit: true,
+        padding: 40
+      } as any).run();
+    }
+  }, [elements, loading]);
 
   const handleTogglePin = () => {
     if (!selectedNode || !cyRef.current) return;
@@ -121,7 +134,7 @@ export function RelationshipGraph() {
     return (
       <div className="flex flex-col items-center justify-center h-full text-tactical-400 font-mono text-sm p-6 text-center max-w-lg mx-auto">
         <Network className="w-10 h-10 mb-4 text-accent-cyan opacity-80" />
-        <div className="font-bold text-white mb-2">Network Graph Analysis</div>
+        <div className="font-bold text-tactical-100 mb-2">Network Graph Analysis</div>
         <p className="text-xs text-tactical-400 mb-6">
           {!focusedEntity
             ? "Select an entity from the Dossier or search (Ctrl+K) to begin interactive network graph exploration."

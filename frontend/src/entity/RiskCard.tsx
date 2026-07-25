@@ -11,7 +11,7 @@ export function RiskCard({ dossier }: { dossier: EntityDossier }) {
     if (typeStr.includes('ACCUSED') || typeStr.includes('SUSPECT')) {
       mockRisks.push('HIGH FLIGHT RISK', 'KNOWN REPEAT OFFENDER');
     }
-    if (String(dossier.status).toUpperCase() === 'WANTED') {
+    if (String((dossier as any).status).toUpperCase() === 'WANTED') {
       mockRisks.push('ACTIVE WARRANT - ARMED & DANGEROUS');
     }
     

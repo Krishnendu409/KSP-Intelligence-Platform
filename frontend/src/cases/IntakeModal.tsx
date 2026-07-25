@@ -41,6 +41,7 @@ export function IntakeModal({ onClose, onCreated }: { onClose: () => void; onCre
   const [accused, setAccused] = useState<PersonRow[]>([emptyPerson()]);
   const [victims, setVictims] = useState<PersonRow[]>([emptyPerson()]);
   const [sections, setSections] = useState<SectionRow[]>([{ actCode: '', sectionCode: '' }]);
+  const [documents, setDocuments] = useState<{name: string, file: File | null}[]>([]);
 
   useEffect(() => {
     apiFetch('/api/lookups')
@@ -240,6 +241,47 @@ export function IntakeModal({ onClose, onCreated }: { onClose: () => void; onCre
                     {(sectionsByAct[row.actCode] || []).map((s) => <option key={s.SectionCode} value={s.SectionCode}>§ {s.SectionCode} — {s.SectionDescription}</option>)}
                   </select>
                   <button type="button" onClick={() => setSections(sections.filter((_, i) => i !== idx))} className="text-tactical-500 hover:text-accent-red"><Trash2 className="w-3.5 h-3.5" /></button>
+                </div>
+              ))}
+            </div>
+
+            {/* Supporting Documents */}
+            <div className="border-t border-tactical-700 pt-3">
+              <div className="flex items-center justify-between mb-2">
+                <label className="text-xxs font-mono text-tactical-300 uppercase font-bold">Supporting Documents</label>
+                <button type="button" onClick={() => setDocuments([...documents, { name: '', file: null }])} className="text-xxs text-accent-cyan hover:underline">+ Add</button>
+              </div>
+              {documents.map((row, idx) => (
+                <div key={idx} className="grid grid-cols-[1fr_1fr_28px] gap-2 mb-1.5">
+                  <input
+                    placeholder="Document Title (e.g. Witness Statement)"
+                    value={row.name}
+                    onChange={(e) => {
+                      const next = [...documents];
+                      next[idx].name = e.target.value;
+                      setDocuments(next);
+                    }}
+                    className="bg-tactical-950 border border-tactical-600 rounded px-2 py-1 text-xs font-mono text-white"
+                  />
+                  <div className="relative">
+                    <input
+                      type="file"
+                      onChange={(e) => {
+                        const file = e.target.files ? e.target.files[0] : null;
+                        const next = [...documents];
+                        next[idx].file = file;
+                        if (file && !next[idx].name) {
+                          next[idx].name = file.name;
+                        }
+                        setDocuments(next);
+                      }}
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                    />
+                    <div className="bg-tactical-950 border border-tactical-600 border-dashed hover:border-accent-cyan rounded px-2 py-1 text-xs font-mono text-tactical-400 flex items-center justify-between truncate h-full">
+                      {row.file ? <span className="text-white">{row.file.name}</span> : <span>Choose File...</span>}
+                    </div>
+                  </div>
+                  <button type="button" onClick={() => setDocuments(documents.filter((_, i) => i !== idx))} className="text-tactical-500 hover:text-accent-red"><Trash2 className="w-3.5 h-3.5" /></button>
                 </div>
               ))}
             </div>

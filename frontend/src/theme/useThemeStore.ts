@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 export type Theme = 'dark' | 'light';
 
@@ -31,6 +31,17 @@ export const useThemeStore = create<ThemeState>()(
     }),
     {
       name: 'ksp-theme',
+      storage: createJSONStorage(() => {
+        try {
+          if (typeof localStorage !== 'undefined' && typeof localStorage.setItem === 'function') return localStorage;
+        } catch (e) {}
+        const store: Record<string, string> = {};
+        return {
+          getItem: (key: string) => store[key] || null,
+          setItem: (key: string, value: string) => { store[key] = value; },
+          removeItem: (key: string) => { delete store[key]; },
+        } as any;
+      }),
       onRehydrateStorage: () => (state) => {
         if (state) applyTheme(state.theme);
       },

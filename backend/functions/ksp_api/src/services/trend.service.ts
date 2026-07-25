@@ -1,4 +1,6 @@
 import type Database from 'better-sqlite3';
+import { jurisdictionClause } from '../auth/jurisdictionSql';
+import type { JurisdictionFilter } from '../auth/types';
 
 /**
  * Real trend and anomaly computation (PRD §7.6/§10) — replaces the previously
@@ -51,7 +53,13 @@ export interface AnomalyAlert {
  * trailing mean of the preceding `lookbackWeeks` weeks. Method and threshold
  * are fixed and disclosed (PRD requires no black-box "AI predicted" labels).
  */
-export function getAnomalyAlerts(db: Database.Database, lookbackWeeks = 8): AnomalyAlert[] {
+export function getAnomalyAlerts(
+  db: Database.Database, 
+  lookbackWeeks = 8, 
+  jurisdiction?: JurisdictionFilter | null
+): AnomalyAlert[] {
+  const { clause, params } = jurisdictionClause(jurisdiction, 'u');
+
   const rows = db.prepare(`
     SELECT
       d.DistrictName as districtName,
@@ -64,9 +72,10 @@ export function getAnomalyAlerts(db: Database.Database, lookbackWeeks = 8): Anom
     JOIN District d ON u.DistrictID = d.DistrictID
     JOIN CrimeSubHead csh ON c.CrimeMinorHeadID = csh.CrimeSubHeadID
     WHERE c.CrimeRegisteredDate IS NOT NULL
+    ${clause}
     GROUP BY d.DistrictID, csh.CrimeSubHeadID, yearWeek
     ORDER BY d.DistrictID, csh.CrimeSubHeadID, yearWeek
-  `).all() as { districtName: string; crimeSubHeadName: string; yearWeek: string; weekStart: string; count: number }[];
+  `).all(...params) as { districtName: string; crimeSubHeadName: string; yearWeek: string; weekStart: string; count: number }[];
 
   const series = new Map<string, { districtName: string; crimeSubHeadName: string; points: { weekStart: string; count: number }[] }>();
   for (const row of rows) {

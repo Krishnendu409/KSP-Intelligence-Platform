@@ -35,13 +35,11 @@ db.exec(`
   END;
 
   CREATE TRIGGER CaseMaster_ad AFTER DELETE ON CaseMaster BEGIN
-    INSERT INTO CaseMaster_fts(CaseMaster_fts, rowid, CrimeNo, BriefFacts, Names) 
-    VALUES ('delete', old.CaseMasterID, old.CrimeNo, old.BriefFacts, '');
+    DELETE FROM CaseMaster_fts WHERE rowid = old.CaseMasterID;
   END;
 
   CREATE TRIGGER CaseMaster_au AFTER UPDATE ON CaseMaster BEGIN
-    INSERT INTO CaseMaster_fts(CaseMaster_fts, rowid, CrimeNo, BriefFacts, Names) 
-    VALUES ('delete', old.CaseMasterID, old.CrimeNo, old.BriefFacts, '');
+    DELETE FROM CaseMaster_fts WHERE rowid = old.CaseMasterID;
     INSERT INTO CaseMaster_fts(rowid, CrimeNo, BriefFacts, Names) 
     VALUES (new.CaseMasterID, new.CrimeNo, new.BriefFacts, '');
   END;
@@ -51,7 +49,21 @@ db.exec(`
 console.log('Populating FTS5 index...');
 db.exec(`
   INSERT INTO CaseMaster_fts(rowid, CrimeNo, BriefFacts, Names)
-  SELECT CaseMasterID, CrimeNo, BriefFacts, '' FROM CaseMaster;
+  SELECT 
+    c.CaseMasterID, 
+    c.CrimeNo, 
+    c.BriefFacts, 
+    COALESCE(ch.CrimeGroupName, '') || ' ' || 
+    COALESCE(csh.CrimeHeadName, '') || ' ' || 
+    COALESCE(d.DistrictName, '') || ' ' || 
+    COALESCE(u.UnitName, '') || ' ' || 
+    COALESCE((SELECT group_concat(AccusedName, ' ') FROM Accused WHERE CaseMasterID = c.CaseMasterID), '') || ' ' || 
+    COALESCE((SELECT group_concat(VictimName, ' ') FROM Victim WHERE CaseMasterID = c.CaseMasterID), '') AS Names
+  FROM CaseMaster c
+  LEFT JOIN CrimeHead ch ON c.CrimeMajorHeadID = ch.CrimeHeadID
+  LEFT JOIN CrimeSubHead csh ON c.CrimeMinorHeadID = csh.CrimeSubHeadID
+  LEFT JOIN Unit u ON c.PoliceStationID = u.UnitID
+  LEFT JOIN District d ON u.DistrictID = d.DistrictID;
 `);
 
 console.log('Migration complete!');

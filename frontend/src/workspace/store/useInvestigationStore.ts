@@ -41,7 +41,7 @@ export interface SelectionModel {
 }
 
 export interface NavigationFrame {
-  type: 'ENTITY' | 'CASE' | 'EVENT' | 'SEARCH';
+  type: 'ENTITY' | 'CASE' | 'EVENT' | 'SEARCH' | 'VIEW' | string;
   id: string;
   label?: string;
   timestamp: string;
@@ -150,6 +150,7 @@ export interface InvestigationSession {
 
   // Navigation Actions
   navigateTo: (frame: Omit<NavigationFrame, 'timestamp'>) => void;
+  logNavigation: (type: NavigationFrame['type'], id: string, label?: string) => void;
   navigateBack: () => void;
   navigateForward: () => void;
   addBookmarkFrame: (frame: Omit<NavigationFrame, 'timestamp'>, name?: string) => void;
@@ -341,6 +342,10 @@ export const useInvestigationStore = create<InvestigationSession>()(
       }
     };
   }),
+
+  logNavigation: (type, id, label) => {
+    get().navigateTo({ type, id, label });
+  },
 
   navigateBack: () => {
     const { navigation } = get();

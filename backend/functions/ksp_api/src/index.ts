@@ -17,6 +17,8 @@ import {
   getMapFIRs, getChoroplethStats, getGeoArcs, getDistrictStats,
   getDistrictDrillDownStats, getTacticalLocations, getPoliceStations, getSystemSummary,
 } from './services/network.service';
+import { setupIngestionRoutes } from './routes/ingestion.routes';
+import { catalystAdapter } from './services/catalyst.adapter';
 
 const { getCaseDetails, getCaseTimeline } = require('./services/case.service');
 const { searchCases } = require('./services/SearchService');
@@ -27,13 +29,31 @@ const db = new Database(env.DB_PATH, { readonly: false });
 runMigrations(db);
 
 app.use(cors({ origin: env.CORS_ORIGIN, credentials: true }));
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '50mb' }));
+app.use(express.text({ limit: '50mb', type: ['text/*', 'application/csv'] }));
+app.use(express.raw({ limit: '50mb', type: 'application/pdf' }));
 app.use(auditLogger(db));
 app.use(authenticate);
 
 // ---------------------------------------------------------------------------
-// Auth (login is public; everything else below requires a valid token)
+// Auth & System Status (login & Catalyst diagnostics are public)
 // ---------------------------------------------------------------------------
+
+app.get('/api/system/catalyst', (req, res) => {
+  res.json({
+    status: 'operational',
+    platform: 'Zoho Catalyst Advanced I/O Serverless Engine',
+    metadata: catalystAdapter.getRuntimeMetadata(),
+    capabilities: [
+      'Catalyst Serverless Functions (Node.js 20)',
+      'Catalyst Data Store / Hybrid SQLite FTS5 Relational Engine',
+      'Catalyst Stratus Evidentiary Vault (PDF & Scanned Handwritten FIRs)',
+      'Catalyst Zia Services & Deterministic AI Copilot Engine',
+      'Role-Based Cryptographic Territory Scoping & Immutable Audit Trail'
+    ],
+    timestamp: new Date().toISOString()
+  });
+});
 
 app.post('/api/auth/login', (req, res) => {
   const { username, password } = req.body || {};
@@ -299,6 +319,62 @@ app.get('/api/entities/:type/:id', (req, res) => {
   }
 });
 
+app.get('/api/entities/:type/:id/notes', (req, res) => {
+  try {
+    const { getEntityNotes } = require('./services/entity_notes.service');
+    res.json(getEntityNotes(db, req.params.type, req.params.id));
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/entities/:type/:id/notes', (req, res) => {
+  try {
+    const { addEntityNote } = require('./services/entity_notes.service');
+    const author = req.user ? `${req.user.role}.${req.user.username}` : 'INVESTIGATOR';
+    const result = addEntityNote(db, {
+      entityType: req.params.type,
+      entityId: req.params.id,
+      author,
+      text: req.body.text || '',
+      noteType: req.body.noteType || 'NOTE',
+    });
+    if (!result.success) return res.status(400).json(result);
+    res.json(result);
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.get('/api/cases/:caseId/documents', (req, res) => {
+  try {
+    const { getCaseDocuments } = require('./services/case_documents.service');
+    const caseId = String(req.params.caseId).replace(/^CASE-/i, '');
+    res.json(getCaseDocuments(db, caseId));
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+app.post('/api/cases/:caseId/documents', (req, res) => {
+  try {
+    const { saveCaseDocument } = require('./services/case_documents.service');
+    const author = req.user ? `${req.user.role}.${req.user.username}` : 'INVESTING OFFICER';
+    const caseId = String(req.params.caseId).replace(/^CASE-/i, '');
+    const doc = saveCaseDocument(db, {
+      caseMasterId: caseId,
+      documentTitle: req.body.documentTitle || 'Untitled Evidence',
+      documentType: req.body.documentType || 'CASE_DOCUMENT',
+      content: req.body.content || '',
+      uploadedBy: author,
+      fileSize: req.body.fileSize || 0
+    });
+    res.status(201).json({ success: true, document: doc });
+  } catch (e: any) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
 // ---------------------------------------------------------------------------
 // Intake — real structured FIR registration, deterministic case numbering
 // ---------------------------------------------------------------------------
@@ -327,12 +403,12 @@ app.post('/api/intake', (req, res) => {
 // Search + Copilot (deterministic — no LLM in the analytical path, ADR 0007)
 // ---------------------------------------------------------------------------
 
-app.get('/api/search/cases', (req, res) => {
+app.get('/api/search/cases', scopeJurisdiction(['CaseMaster', 'Unit']), (req, res) => {
   try {
     const query = req.query.q as string;
     if (!query) return res.status(400).json({ error: "Missing query parameter 'q'" });
     const limit = parseInt(req.query.limit as string) || 20;
-    res.status(200).json(searchCases(db, query, limit));
+    res.status(200).json(searchCases(db, query, limit, req.jurisdiction));
   } catch (err: any) {
     console.error('Failed to search cases:', err);
     res.status(500).json({ error: err.message });
@@ -369,10 +445,10 @@ app.post('/api/copilot', scopeJurisdiction(['CaseMaster', 'Accused', 'District']
 // Analytics — trend/anomaly + repeat-offender detection (PRD §7.6/§9.5/§10)
 // ---------------------------------------------------------------------------
 
-app.get('/api/analytics/anomalies', requireRole('Analyst', 'SCRB', 'SP'), (req, res) => {
+app.get('/api/analytics/anomalies', scopeJurisdiction(['CaseMaster', 'District']), (req, res) => {
   try {
     const lookbackWeeks = parseInt(req.query.lookbackWeeks as string) || 8;
-    res.json(getAnomalyAlerts(db, lookbackWeeks));
+    res.json(getAnomalyAlerts(db, lookbackWeeks, req.jurisdiction));
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -404,6 +480,11 @@ app.get('/api/audit/logs', requireRole('SCRB', 'SP'), (req, res) => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// Automated Data Ingestion — bulk CSV and PDF FIR processing (PRD §4/Differentiators)
+// ---------------------------------------------------------------------------
+app.use('/api/ingestion', setupIngestionRoutes(db));
+
 // Central error handler — anything thrown synchronously outside a route's own
 // try/catch still gets audit-logged (via auditLogger's res.on('finish') hook)
 // with a real status code instead of crashing the process.
@@ -413,8 +494,12 @@ app.use((err: any, req: express.Request, res: express.Response, _next: express.N
   res.status(500).json({ error: 'Internal server error' });
 });
 
-app.listen(env.PORT, () => {
-  console.log(`[KSP API] Backend server running on http://localhost:${env.PORT}`);
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(env.PORT, () => {
+    const mode = catalystAdapter.getRuntimeMetadata().isCloudRuntime ? 'Zoho Catalyst Serverless Cloud Mode' : 'Hybrid Edge Commander Mode';
+    console.log(`[KSP API Engine] Server running on http://localhost:${env.PORT} [${mode}]`);
+  });
+}
 
 module.exports = app;
+export default app;

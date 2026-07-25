@@ -9,10 +9,11 @@ export const NetworkAnalysisPage: React.FC = () => {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchInput.trim()) {
-      const formatted = searchInput.trim().toUpperCase().startsWith('CASE-') 
-        ? searchInput.trim().toUpperCase() 
-        : `CASE-${searchInput.trim()}`;
+    const val = searchInput.trim();
+    if (val) {
+      const upper = val.toUpperCase();
+      const isEntityId = /^(CASE|ACCUSED|VICTIM|COMPLAINANT|PERSON|POLICESTATION|EMPLOYEE|COURT|ENT)-/i.test(val) || val.includes('-');
+      const formatted = isEntityId ? upper : `CASE-${val}`;
       setFocusedEntity(formatted);
       setSearchInput('');
     }

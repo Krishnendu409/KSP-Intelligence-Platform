@@ -2,13 +2,14 @@ import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Map, Network, FileText, Bot, Shield,
-  Search, Video, Printer, LogOut, User, AlertTriangle
+  Search, Video, Printer, LogOut, User, AlertTriangle, Upload
 } from 'lucide-react';
 import { useInvestigationStore } from '../workspace/store/useInvestigationStore';
 import { CommandPalette } from '../components/common/CommandPalette';
 import { WorkflowRecorder } from '../workspace/WorkflowRecorder';
 import { useAuthStore } from '../auth/useAuthStore';
 import { ThemeToggle } from '../theme/ThemeToggle';
+import { DataIngestionModal } from '../ingestion/DataIngestionModal';
 
 export const AppSidebar: React.FC = () => {
   const location = useLocation();
@@ -24,6 +25,7 @@ export const AppSidebar: React.FC = () => {
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [isWorkflowRecorderOpen, setIsWorkflowRecorderOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isIngestionOpen, setIsIngestionOpen] = useState(false);
 
   const handleNavClick = (id: string) => {
     if (id === 'map') {
@@ -58,6 +60,7 @@ export const AppSidebar: React.FC = () => {
   return (
     <>
       <CommandPalette isOpen={isCommandPaletteOpen} onClose={() => setIsCommandPaletteOpen(false)} />
+      <DataIngestionModal isOpen={isIngestionOpen} onClose={() => setIsIngestionOpen(false)} />
 
       <aside className="flex flex-col w-14 shrink-0 bg-tactical-900 border-r border-tactical-700/60 z-30 select-none">
         {/* Logo */}
@@ -117,6 +120,15 @@ export const AppSidebar: React.FC = () => {
           >
             <AlertTriangle className="w-4 h-4" />
             <span className="nav-label">ALERTS</span>
+          </button>
+
+          <button
+            onClick={() => setIsIngestionOpen(true)}
+            className={`nav-item ${isIngestionOpen ? 'active' : ''}`}
+            title="Automated CSV & PDF Data Ingestion"
+          >
+            <Upload className="w-4 h-4" />
+            <span className="nav-label">INGEST</span>
           </button>
         </nav>
 

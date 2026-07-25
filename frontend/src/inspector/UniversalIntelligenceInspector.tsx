@@ -11,6 +11,7 @@ import {
   ArrowRight,
   Clock,
 } from "lucide-react";
+import { CaseDocumentViewer } from "../cases/CaseDocumentViewer";
 
 
 export interface UniversalIntelligenceInspectorProps {
@@ -39,19 +40,27 @@ export const UniversalIntelligenceInspector: React.FC<UniversalIntelligenceInspe
       const type = inspector.type;
       const rawId = inspector.data.id.split('-').pop(); // e.g. CASE-101 or VICTIM-1 or just 1
       
-      // If it's a Case, we don't have an entity profile yet, just use the raw data.
-      // But if it's Victim/Accused/Complainant, fetch the real entity profile.
-      if (['Victim', 'Accused', 'Complainant'].includes(type)) {
+      const allowedTypes = ['VICTIM', 'ACCUSED', 'COMPLAINANT', 'CASE', 'POLICESTATION', 'EMPLOYEE', 'COURT', 'ENTITY'];
+      if (allowedTypes.includes(type.toUpperCase())) {
         setLoading(true);
         apiFetch(`/api/entities/${type}/${rawId}`)
           .then(res => res.json())
           .then(data => {
-            if (!data.error) setEntityProfile(data);
+            if (!data.error && data.id) setEntityProfile(data);
           })
+          .catch(() => {})
           .finally(() => setLoading(false));
       } else {
         setEntityProfile(null);
       }
+
+      // Fetch persistent notes from DB
+      apiFetch(`/api/entities/${type}/${rawId}/notes`)
+        .then(res => res.json())
+        .then(notes => {
+          if (Array.isArray(notes)) setSavedNotes(notes);
+        })
+        .catch(() => {});
     }
   }, [inspector.isOpen, inspector.type, inspector.data]);
 
@@ -69,19 +78,34 @@ export const UniversalIntelligenceInspector: React.FC<UniversalIntelligenceInspe
   // Use Real First-Degree Network data from DB
   const firstDegreeNetwork = data.network || [];
 
-  const handleAddNote = (e: React.FormEvent) => {
+  const handleAddNote = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!analystNote.trim()) return;
-    setSavedNotes((prev) => [
-      {
-        id: `note-${Date.now()}`,
-        timestamp: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
-        text: analystNote.trim(),
-        author: "CURRENT INVESTIGATOR",
-      },
-      ...prev,
-    ]);
-    setAnalystNote("");
+    if (!analystNote.trim() || !inspector.type || !inspector.data?.id) return;
+    const type = inspector.type;
+    const rawId = inspector.data.id.split('-').pop();
+
+    try {
+      const res = await apiFetch(`/api/entities/${type}/${rawId}/notes`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: analystNote.trim(), noteType: 'SURVEILLANCE' })
+      });
+      if (res.ok || res.status === 200) {
+        const resData = await res.json();
+        setSavedNotes((prev) => [
+          {
+            id: String(resData.noteId || `note-${Date.now()}`),
+            timestamp: new Date().toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
+            text: analystNote.trim(),
+            author: "INVESTIGATOR (DB)",
+          },
+          ...prev,
+        ]);
+        setAnalystNote("");
+      }
+    } catch (err) {
+      console.error('Failed to save note to database', err);
+    }
   };
 
   const renderMetadataTab = () => (
@@ -136,6 +160,12 @@ export const UniversalIntelligenceInspector: React.FC<UniversalIntelligenceInspe
           </tbody>
         </table>
       </div>
+
+      {(entityId?.toUpperCase().startsWith('CASE-') || data.type?.toUpperCase() === 'CASE') && (
+        <div className="mt-4">
+          <CaseDocumentViewer caseId={entityId || ''} />
+        </div>
+      )}
     </div>
   );
 
@@ -333,10 +363,10 @@ export const UniversalIntelligenceInspector: React.FC<UniversalIntelligenceInspe
       {/* Logged Notes Stream */}
       <div className="space-y-2 pt-2 border-t border-tactical-800">
         <span className="font-mono text-xxs text-tactical-400 uppercase tracking-wider block">
-          SESSION NOTES ({savedNotes.length}) — not saved to server, cleared on reload
+          PERSISTENT EVIDENCE NOTES ({savedNotes.length}) — IMMUTABLE SURVEILLANCE & INVESTIGATION LOG
         </span>
         {savedNotes.length === 0 && (
-          <div className="p-3 text-tactical-500 font-mono text-xs text-center">No notes logged this session.</div>
+          <div className="p-3 text-tactical-500 font-mono text-xs text-center">No persistent evidence notes logged yet.</div>
         )}
         {savedNotes.map((note) => (
           <div key={note.id} className="p-3 bg-tactical-900/80 rounded border border-tactical-800 space-y-1.5">

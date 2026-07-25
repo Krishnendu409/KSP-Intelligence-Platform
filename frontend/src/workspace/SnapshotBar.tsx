@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useInvestigationStore } from "./store/useInvestigationStore";
 import type { SnapshotMeta } from "./store/useInvestigationStore";
-import { Save, FolderDown, Trash2, Check, Clock, ShieldCheck, X } from "lucide-react";
+import { Save, FolderDown, Trash2, Clock, ShieldCheck, X } from "lucide-react";
 import { useToastStore } from "./store/useToastStore";
 
 export function SnapshotBar() {
@@ -151,7 +151,7 @@ export function SnapshotBar() {
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="text-tactical-400 hover:text-white"
+                className="text-tactical-400 hover:text-tactical-100"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -167,7 +167,7 @@ export function SnapshotBar() {
               value={snapshotName}
               onChange={(e) => setSnapshotName(e.target.value)}
               placeholder="e.g. Operation Midnight Shadow — Warehouse Lead"
-              className="w-full bg-tactical-900 border border-tactical-700 focus:border-accent-cyan rounded px-3 py-1.5 text-xs font-mono text-white outline-none"
+              className="w-full bg-tactical-900 border border-tactical-700 focus:border-accent-cyan rounded px-3 py-1.5 text-xs font-mono text-tactical-100 outline-none"
             />
 
             <div className="flex justify-end gap-2 pt-1">

@@ -125,6 +125,25 @@ export function createCase(
       insertSection.run(newCaseId, s.actCode, section.SectionID, idx + 1, idx + 1);
     });
 
+    // Synchronize FTS5 index with newly added accused, victims, and unit metadata
+    db.prepare(`
+      UPDATE CaseMaster_fts SET Names = (
+        SELECT 
+          COALESCE(ch.CrimeGroupName, '') || ' ' || 
+          COALESCE(csh.CrimeHeadName, '') || ' ' || 
+          COALESCE(d.DistrictName, '') || ' ' || 
+          COALESCE(u.UnitName, '') || ' ' || 
+          COALESCE((SELECT group_concat(AccusedName, ' ') FROM Accused WHERE CaseMasterID = c.CaseMasterID), '') || ' ' || 
+          COALESCE((SELECT group_concat(VictimName, ' ') FROM Victim WHERE CaseMasterID = c.CaseMasterID), '')
+        FROM CaseMaster c
+        LEFT JOIN CrimeHead ch ON c.CrimeMajorHeadID = ch.CrimeHeadID
+        LEFT JOIN CrimeSubHead csh ON c.CrimeMinorHeadID = csh.CrimeSubHeadID
+        LEFT JOIN Unit u ON c.PoliceStationID = u.UnitID
+        LEFT JOIN District d ON u.DistrictID = d.DistrictID
+        WHERE c.CaseMasterID = ?
+      ) WHERE rowid = ?
+    `).run(newCaseId, newCaseId);
+
     return newCaseId;
   });
 

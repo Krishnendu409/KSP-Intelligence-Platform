@@ -1,0 +1,11 @@
+{
+  "functions": {
+    "targets": [
+      "ksp_api"
+    ],
+    "location": "backend/functions"
+  },
+  "client": {
+    "source": "frontend"
+  }
+}

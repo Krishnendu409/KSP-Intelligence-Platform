@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FileText, MapPin, Scale, Users, PlusCircle, Map } from 'lucide-react';
-import { OpenAPI } from '@shared/client';
+import { FileText, MapPin, Scale, Users, PlusCircle, Map, Upload } from 'lucide-react';
 import { apiFetch } from '../shared/api/apiFetch';
 import { IntakeModal } from '../cases/IntakeModal';
+import { DataIngestionModal } from '../ingestion/DataIngestionModal';
+import { CaseDocumentViewer } from '../cases/CaseDocumentViewer';
 
 import { useInvestigationStore } from '../workspace/store/useInvestigationStore';
 
@@ -27,13 +28,14 @@ export const FIRDatabasePage: React.FC = () => {
   const [selectedCase, setSelectedCase] = useState<any>(null);
   
   const [showIntakeModal, setShowIntakeModal] = useState(false);
+  const [showIngestionModal, setShowIngestionModal] = useState(false);
 
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [totalCasesCount, setTotalCasesCount] = useState<number | null>(null);
 
   useEffect(() => {
-    apiFetch(`${OpenAPI.BASE}/api/firs/summary`)
+    apiFetch('/api/firs/summary')
       .then(res => res.json())
       .then(data => {
         if (data && data.totalCases) {
@@ -44,7 +46,7 @@ export const FIRDatabasePage: React.FC = () => {
   }, []);
 
   const fetchFirs = (pageNum: number, append = false) => {
-    apiFetch(`${OpenAPI.BASE}/api/firs?page=${pageNum}&limit=50`)
+    apiFetch(`/api/firs?page=${pageNum}&limit=50`)
       .then(res => res.json())
       .then(data => {
         if (data.length < 50) setHasMore(false);
@@ -72,7 +74,7 @@ export const FIRDatabasePage: React.FC = () => {
 
   useEffect(() => {
     if (activeCase) {
-        apiFetch(`${OpenAPI.BASE}/api/cases/CASE-${activeCase}`)
+        apiFetch(`/api/cases/CASE-${activeCase}`)
           .then(res => res.json())
           .then(data => setSelectedCase(data))
           .catch(console.error);
@@ -114,6 +116,13 @@ export const FIRDatabasePage: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-2">
+          <button 
+            onClick={() => setShowIngestionModal(true)}
+            className="flex items-center gap-2 bg-tactical-800 hover:bg-tactical-700 text-white border border-tactical-600 px-3 py-1 rounded text-xs font-mono transition-colors"
+          >
+            <Upload className="w-4 h-4 text-accent-cyan" />
+            UPLOAD CSV/PDF
+          </button>
           <button 
             onClick={() => setShowIntakeModal(true)}
             className="flex items-center gap-2 bg-accent-cyan/20 hover:bg-accent-cyan/30 text-accent-cyan border border-accent-cyan/40 px-3 py-1 rounded text-xs font-mono transition-colors"
@@ -253,6 +262,9 @@ export const FIRDatabasePage: React.FC = () => {
               <span className="text-tactical-400 text-xxs uppercase block mb-1">BRIEF FACTS (NARRATIVE):</span>
               <p className="text-tactical-100 leading-relaxed">{selectedCase.BriefFacts}</p>
             </div>
+
+            {/* Evidence & Documents Upload Repository */}
+            <CaseDocumentViewer caseId={selectedCase.CaseMasterID} />
           </div>
 
           {/* Act & Section Associations */}
@@ -328,6 +340,9 @@ export const FIRDatabasePage: React.FC = () => {
 
       {showIntakeModal && (
         <IntakeModal onClose={() => setShowIntakeModal(false)} onCreated={handleCaseCreated} />
+      )}
+      {showIngestionModal && (
+        <DataIngestionModal isOpen={showIngestionModal} onClose={() => setShowIngestionModal(false)} onSuccess={() => fetchFirs(1, false)} />
       )}
     </div>
   );

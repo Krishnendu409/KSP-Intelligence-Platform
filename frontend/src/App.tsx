@@ -22,14 +22,17 @@ OpenAPI.TOKEN = async () => useAuthStore.getState().token ?? '';
 // Invisible component that syncs URL with Zustand state for deep linking
 function RouteSync() {
   const location = useLocation();
-  const { setActiveSearch, setFocusedEntity } = useInvestigationStore();
+  const { setActiveSearch, setFocusedEntity, logNavigation } = useInvestigationStore();
 
   useEffect(() => {
+    logNavigation('VIEW', location.pathname, `View: ${location.pathname}`);
+
     // Example deep linking logic:
     // /entity/PERSON-001
     const parts = location.pathname.split('/');
     if (parts[1] === 'entity' && parts[2]) {
       setFocusedEntity(parts[2]);
+      logNavigation('ENTITY', parts[2], `Dossier: ${parts[2]}`);
     }
 
     // /search?q=KA01AB1234
@@ -37,8 +40,9 @@ function RouteSync() {
     const q = params.get('q');
     if (q) {
       setActiveSearch(q);
+      logNavigation('SEARCH', q, `Search: ${q}`);
     }
-  }, [location, setActiveSearch, setFocusedEntity]);
+  }, [location.pathname, location.search, setActiveSearch, setFocusedEntity, logNavigation]);
 
   return null;
 }
