@@ -28,7 +28,9 @@ interface AuthState {
   hydrateUser: () => Promise<void>;
 }
 
-const API_BASE = import.meta.env.VITE_API_BASE ?? '';
+const API_BASE = import.meta.env.VITE_API_BASE !== undefined && import.meta.env.VITE_API_BASE !== ''
+  ? import.meta.env.VITE_API_BASE
+  : (import.meta.env.PROD ? '/server/ksp_api' : '');
 
 export const useAuthStore = create<AuthState>()(
   persist(

@@ -83,7 +83,7 @@ export function TacticalMap() {
 
     // Fetch GeoJSON and Stats separately — merge dynamically via useMemo
     Promise.all([
-      fetch(typeof window === 'undefined' ? 'http://localhost:5173/geojson/karnataka-districts.json' : '/geojson/karnataka-districts.json').then(res => res.json()),
+      fetch(typeof window === 'undefined' ? 'http://localhost:5173/geojson/karnataka-districts.json' : './geojson/karnataka-districts.json').then(res => res.json()),
       apiFetch('/api/districts/stats').then(res => res.json())
     ])
     .then(([geoJson, statsData]) => {

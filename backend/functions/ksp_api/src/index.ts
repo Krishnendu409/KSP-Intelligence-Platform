@@ -25,6 +25,13 @@ const { searchCases } = require('./services/SearchService');
 
 const app = express();
 
+app.use((req, _res, next) => {
+  if (req.url.startsWith('/server/ksp_api')) {
+    req.url = req.url.replace('/server/ksp_api', '') || '/';
+  }
+  next();
+});
+
 const db = new Database(env.DB_PATH, { readonly: false });
 runMigrations(db);
 

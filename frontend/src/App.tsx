@@ -16,7 +16,9 @@ import { Toaster } from './components/common/Toaster';
 import { KeyboardShortcutsModal } from './components/common/KeyboardShortcutsModal';
 
 // Configure OpenAPI Client — use relative URL; Vite proxy forwards /api/* to localhost:3000 in dev
-OpenAPI.BASE = import.meta.env.VITE_API_BASE ?? '';
+OpenAPI.BASE = import.meta.env.VITE_API_BASE !== undefined && import.meta.env.VITE_API_BASE !== ''
+  ? import.meta.env.VITE_API_BASE
+  : (import.meta.env.PROD ? '/server/ksp_api' : '');
 OpenAPI.TOKEN = async () => useAuthStore.getState().token ?? '';
 
 // Invisible component that syncs URL with Zustand state for deep linking
