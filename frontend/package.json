@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vite",
     "test": "vitest run",
-    "build": "tsc -b && vite build",
-    "lint": "oxlint",
+    "build": "tsc -b && vite build && node -e \"fs.copyFileSync('dist/index.html', 'dist/404.html')\"",
+    "lint": "eslint .",
     "preview": "vite preview"
   },
   "dependencies": {
