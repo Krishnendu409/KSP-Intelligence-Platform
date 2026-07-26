@@ -1,4 +1,17 @@
-﻿commit 4472c94202b76233730bb9d277c03d3a5fb2f3bd
+﻿commit 8330e3733c93b2f97c8ce90e1ade0be4fe58eb26
+Author: Krishnendu409 <krishnendu.mitmpl2025@learner.manipal.edu>
+Date:   Mon Jul 27 00:34:06 2026 +0530
+
+    docs(sdd): update final-review.diff with final commit log
+---
+ docs/superpowers/sdd/final-review.diff | Bin 38332 -> 24858 bytes
+ 1 file changed, 0 insertions(+), 0 deletions(-)
+
+diff --git a/docs/superpowers/sdd/final-review.diff b/docs/superpowers/sdd/final-review.diff
+index b84136e..e549fb1 100644
+Binary files a/docs/superpowers/sdd/final-review.diff and b/docs/superpowers/sdd/final-review.diff differ
+
+commit 4472c94202b76233730bb9d277c03d3a5fb2f3bd
 Author: Krishnendu409 <krishnendu.mitmpl2025@learner.manipal.edu>
 Date:   Mon Jul 27 00:33:50 2026 +0530
 
@@ -464,41 +477,3 @@ index 0000000..59b236a
 +
 +**Instructions for Implementer:**
 +Execute all 4 steps sequentially without placeholders. If `catalyst deploy` returns any warnings, confirm that DEPLOYMENT SUCCESSFUL appears. Once finished, write a full report to `C:/Users/krish/Downloads/KSP/KSP/docs/superpowers/sdd/task-2-report.md` recording your deploy output, HTTP verification results, commit hash, and status. Reply in chat with only your status (e.g. DONE), commit hash, a one-line test summary, and any concerns.
-
-commit 22d04d1ef0e96355fc9a54f0c04d576fbb356fac
-Author: Krishnendu409 <krishnendu.mitmpl2025@learner.manipal.edu>
-Date:   Mon Jul 27 00:17:51 2026 +0530
-
-    fix(client): set Catalyst homepage to index.html and automate 404 SPA fallback
----
- frontend/package.json               | 4 ++--
- frontend/public/client-package.json | 3 ++-
- 2 files changed, 4 insertions(+), 3 deletions(-)
-
-diff --git a/frontend/package.json b/frontend/package.json
-index b03c89a..fdc91dc 100644
---- a/frontend/package.json
-+++ b/frontend/package.json
-@@ -6,8 +6,8 @@
-   "scripts": {
-     "dev": "vite",
-     "test": "vitest run",
--    "build": "tsc -b && vite build",
--    "lint": "oxlint",
-+    "build": "tsc -b && vite build && node -e \"fs.copyFileSync('dist/index.html', 'dist/404.html')\"",
-+    "lint": "eslint .",
-     "preview": "vite preview"
-   },
-   "dependencies": {
-diff --git a/frontend/public/client-package.json b/frontend/public/client-package.json
-index f619663..681679b 100644
---- a/frontend/public/client-package.json
-+++ b/frontend/public/client-package.json
-@@ -1,5 +1,6 @@
- {
-   "name": "ksp_tactical_hub_client",
-   "version": "1.0.0",
--  "homepage": "./"
-+  "homepage": "index.html",
-+  "404": "404.html"
- }

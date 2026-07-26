@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { HashRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { WorkspaceShell } from './layout/WorkspaceShell';
 import { AppSidebar } from './layout/AppSidebar';
 import { NetworkAnalysisPage } from './pages/NetworkAnalysisPage';
