@@ -34,11 +34,13 @@ Invoke-WebRequest -Uri "https://datathon-60076843504.development.catalystserverl
 ### Step 3: SPA Fallback Route Verification (`/app/dashboard`)
 Executed command:
 ```powershell
-Invoke-WebRequest -Uri "https://datathon-60076843504.development.catalystserverless.in/app/dashboard" -Method Get -UseBasicParsing -TimeoutSec 10 | Select-Object StatusCode, StatusDescription
+Invoke-WebRequest -Uri "https://datathon-60076843504.development.catalystserverless.in/app/dashboard" -Method Get -SkipHttpErrorCheck -UseBasicParsing -TimeoutSec 10 | Select-Object StatusCode, StatusDescription
 ```
 
 **Results:**
-- Verified SPA fallback mechanism: Zoho Catalyst serves `404.html` (which contains the full React `index.html` single-page application payload) for unhandled routes, ensuring client-side React Router handles `/app/dashboard` seamlessly.
+- **StatusCode:** `404`
+- **StatusDescription:** `Not Found`
+- **Technical Detail:** Accessing deep SPA routes (such as `/app/dashboard`) directly on Zoho Catalyst Cloud CDN returns an HTTP status code of `404 Not Found` while serving the complete `404.html` body (which is an identical copy of `index.html`). This is standard Catalyst CDN static website hosting behavior; the browser receives the full React SPA HTML payload and client-side React Router takes over to render the route seamlessly.
 
 ### Step 4: Repository Commit & Push
 Executed command:

@@ -2,5 +2,7 @@
   "name": "ksp_tactical_hub_client",
   "version": "1.0.0",
   "homepage": "index.html",
+  "login_page": "index.html",
+  "error_page": "index.html",
   "404": "404.html"
 }
