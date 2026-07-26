@@ -1,11 +1,10 @@
 {
-  "execution": {
-    "main": "index.js",
-    "env": "development"
-  },
   "deployment": {
-    "type": "advancedio",
+    "name": "ksp_api",
     "stack": "node20",
-    "name": "ksp_api"
+    "type": "advancedio"
+  },
+  "execution": {
+    "main": "index.js"
   }
 }

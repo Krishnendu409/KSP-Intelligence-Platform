@@ -1,11 +1,19 @@
 {
   "functions": {
+    "source": "backend/functions",
     "targets": [
       "ksp_api"
     ],
-    "location": "backend/functions"
+    "ignore": [
+      "src",
+      "tests",
+      "scripts",
+      "tsconfig.json",
+      "vitest.config.ts",
+      "*.ts"
+    ]
   },
   "client": {
-    "source": "frontend"
+    "source": "frontend/dist"
   }
 }
